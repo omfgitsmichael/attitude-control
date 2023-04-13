@@ -36,7 +36,7 @@ struct ProjectionParams
  * output: The deadzone operator bounded between zero and one
 **/
 template <typename Scalar, int Size>
-inline Scalar deadzone(const DeadzoneParams<Scalar>& params, const Eigen::Vector<Scalar, Size>& error)
+inline Scalar deadzoneOperator(const DeadzoneParams<Scalar>& params, const Eigen::Vector<Scalar, Size>& error)
 {
     Scalar e = error.norm();
     Scalar deadzone = (e - params.del * params.e0) / ((1.0 - params.del) * params.e0);
@@ -54,9 +54,9 @@ inline Scalar deadzone(const DeadzoneParams<Scalar>& params, const Eigen::Vector
  * output: The parameter estimate rate 
 **/
 template <typename Scalar, int Size1, int Size2>
-inline Eigen::Matrix<Scalar, Size1, Size2> projection(const ProjectionParams<Scalar, Size2>& params,
-                                                      const Eigen::Matrix<Scalar, Size1, Size2>& theta,
-                                                      const Eigen::Matrix<Scalar, Size1, Size2>& adaptationLaw)
+inline Eigen::Matrix<Scalar, Size1, Size2> projectionOperator(const ProjectionParams<Scalar, Size2>& params,
+                                                              const Eigen::Matrix<Scalar, Size1, Size2>& theta,
+                                                              const Eigen::Matrix<Scalar, Size1, Size2>& adaptationLaw)
 {
     Eigen::Matrix<Scalar, Size1, Size2> thetaDot = Eigen::Matrix<Scalar, Size1, Size2>::Zero();
 

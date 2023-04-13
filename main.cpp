@@ -65,9 +65,11 @@ int main() {
 
     Eigen::Vector<double, 3> adaptationLaw = gamma * law;
 
-    Eigen::Vector<double, 3> thetaDot = attitude::projection(projectionParams, paramEstimate, adaptationLaw);
+    Eigen::Vector<double, 3> thetaDot = attitude::projectionOperator(projectionParams, paramEstimate, adaptationLaw);
 
     std::cout << thetaDot << "\n" << std::endl;
+
+    // Add test for passivity based adaptive controller check
 
     return 0;
 }

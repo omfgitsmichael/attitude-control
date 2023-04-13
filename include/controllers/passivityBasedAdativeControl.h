@@ -46,7 +46,33 @@ class PassivityBasedAdaptiveControl
                             const BodyRate<Scalar>& omegaDesired,
                             const BodyRate<Scalar>& omegaDotDesired)
     {
-        return u_;
+      // Calculate the errors
+      Quaternion<Scalar> quatError = quatMultiply(quat, quatInverse(quatDesired));
+      BodyRate<Scalar> omegaError = omega - omegaDesired;
+      Quaternion<Scalar> quatErrorRate = quaternionKinematics(quatError, omegaError);
+
+      const Eigen::Vector<Scalar, 3> quatErrorVector{quatError(0), quatError(1), quatError(2)};
+      const Eigen::Vector<Scalar, 3> quatErrorRateVector{quatErrorRate(0), quatErrorRate(1), quatErrorRate(2)};
+
+      // Calculate passivity terms
+      const Eigen::Vector<Scalar, 3> s = omegaError + controllerParams_.lambda * quatErrorVector;
+      const Eigen::Vector<Scalar, 3> omegaR = omegaDesired - controllerParams_.lambda * quatErrorVector;
+      const Eigen::Vector<Scalar, 3> omegaRRate = omegaDotDesired - controllerParams_.lambda * quatErrorRateVector;
+
+      // Create the regressor matrix
+      const Eigen::Matrix<Scalar, 3, 3> regressor{{omegaRRate(0), -omega(1) * omegaR(2), omega(2) * omegaR(1)},
+                                                  {omega(0) * omegaR(2), omegaRRate(1), -omega(2) * omegaR(0)},
+                                                  {-omega(0) * omegaR(1), omega(1) * omegaR(0), omegaRRate(2)}};
+
+      // Update parameter estimates
+      const Scalar deadzone = deadzoneOperator(controllerParams_.deadzoneParams, s);
+      const Eigen::Vector<Scalar, 3> adapationLaws = -controllerParams_.gammaInv * regressor.transpose() * s * deadzone;
+      estimatedParams_ += projectionOperator(controllerParams_.projectionParams, estimatedParams_, adapationLaws) * controllerParams_.dt;
+
+      // Calculate the adaptive control
+      u_ = regressor * estimatedParams_ - controllerParams_.k * s;
+      
+      return u_;
     }
 
   private:
