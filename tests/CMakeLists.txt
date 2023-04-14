@@ -1,0 +1,2 @@
+add_subdirectory(attitudeUtilsTest)
+add_subdirectory(controlUtilsTest)

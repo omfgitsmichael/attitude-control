@@ -31,8 +31,9 @@ class PassivityBasedAdaptiveControl
     }
 
     /**
-    * Calculate the passivity-based adaptive control. Referenced from "Passivity Based Adaptive Attitude Control of Rigid
-    * Spacecraft" by O. Egeland, and J. -M. Godhavn, IEEE Transactions on Automatic Control, Vol 39, issue No. 4, April 1994
+    * Calculate the passivity-based adaptive control augmented with the deadzone and projection operators. Referenced from
+    * "Passivity Based Adaptive Attitude Control of Rigid Spacecraft" by O. Egeland, and J. -M. Godhavn, IEEE Transactions
+    * on Automatic Control, Vol 39, issue No. 4, April 1994
     * Input: quat - The attitude quaternion
     * Input: quatDesired - The desired attitude quaternion
     * Input: omega - The current angular body rates
@@ -40,11 +41,11 @@ class PassivityBasedAdaptiveControl
     * Input: omegaDotDesired - The desired angular body acceleration
     * output: Control torque
     **/
-    Scalar calculateControl(const Quaternion<Scalar>& quat,
-                            const Quaternion<Scalar>& quatDesired,
-                            const BodyRate<Scalar>& omega,
-                            const BodyRate<Scalar>& omegaDesired,
-                            const BodyRate<Scalar>& omegaDotDesired)
+    Eigen::Vector<Scalar, 3> calculateControl(const Quaternion<Scalar>& quat,
+                                              const Quaternion<Scalar>& quatDesired,
+                                              const BodyRate<Scalar>& omega,
+                                              const BodyRate<Scalar>& omegaDesired,
+                                              const BodyRate<Scalar>& omegaDotDesired)
     {
       // Calculate the errors
       Quaternion<Scalar> quatError = quatMultiply(quat, quatInverse(quatDesired));

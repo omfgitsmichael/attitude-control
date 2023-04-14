@@ -44,8 +44,8 @@ int main() {
     params.dt = 0.1;
     params.lambda = Eigen::Matrix<double, 3, 3>{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     params.k = Eigen::Matrix<double, 3, 3>{{2.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 2.0}};
-    params.gammaInv = Eigen::Matrix<double, 3, 3>{{0.1, 0.0, 0.0}, {0.0, 0.1, 0.0}, {0.0, 0.0, 0.1}};
-    params.projectionParams.epsilon(0) = 0.5;
+    params.gammaInv = Eigen::Matrix<double, 3, 3>{{10.0, 0.0, 0.0}, {0.0, 10.0, 0.0}, {0.0, 0.0, 10.0}};
+    params.projectionParams.epsilon(0) = 0.025;
     params.projectionParams.thetaMax(0) = 3000.0;
     params.deadzoneParams.del = 0.5;
     params.deadzoneParams.e0 = 0.5;
@@ -70,6 +70,15 @@ int main() {
     std::cout << thetaDot << "\n" << std::endl;
 
     // Add test for passivity based adaptive controller check
+    attitude::BodyRate<double> w{-0.014, 0.0167, -0.0114};
+    attitude::Quaternion<double> q{0.4956, 0.4382, 0.4952, 0.5631};
+    attitude::BodyRate<double> wd{0.0, 0.0, 0.0};
+    attitude::BodyRate<double> wdd{0.0, 0.0, 0.0};
+    attitude::Quaternion<double> qd{-0.0446, 0.1227, 0.3391, 0.9317};
+    
+    Eigen::Vector<double, 3> u = passivityBasedAdaptiveController.calculateControl(q, qd, w, wd, wdd);
+
+    std::cout << u << std::endl;
 
     return 0;
 }
