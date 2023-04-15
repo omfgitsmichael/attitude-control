@@ -23,7 +23,7 @@ int main() {
 
     attitude::EulerAngle<double> theta_compare = attitude::quaternionToEuler(sequence, quaternion);
 
-    std::cout << theta_compare << "\n" << std::endl; /// Seems like there is approximately 3% accuracy loss in the conversion
+    std::cout << theta_compare << "\n" << std::endl;
 
     attitude::Quaternion<double> quaternion2{std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0};
 

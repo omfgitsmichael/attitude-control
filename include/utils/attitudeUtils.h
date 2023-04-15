@@ -4,6 +4,8 @@
 #include <string>
 #include <cmath>
 
+#include <iostream>
+
 #include "utils/typenames.h"
 
 namespace attitude {
@@ -235,12 +237,13 @@ template<typename Scalar>
 inline RotationMatrix<Scalar> quaternionRotationMatrix(const Quaternion<Scalar>& quat)
 {
      // Quaternion vector skew symmetric matrix 
-    const Eigen::Matrix<Scalar, 3, 3> qCross{{0, -quat(2), quat(1)}, {quat(2), 0, -quat(0)}, {-quat(1), quat(0), 0}};
+    const Eigen::Matrix<Scalar, 3, 3> qCross{{0.0, -quat(2), quat(1)}, {quat(2), 0.0, -quat(0)}, {-quat(1), quat(0), 0.0}};
 
     const Eigen::Vector<Scalar, 3> qVector{quat(0), quat(1), quat(2)};                    /// Quaternion vector component
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity(); /// Identity matrix
 
-    return (quat(3) * quat(3) - qVector.squaredNorm()) * identity - static_cast<Scalar>(2.0) * quat(3) * qCross + qVector * qVector.transpose();
+    return (quat(3) * quat(3) - qVector.squaredNorm()) * identity - static_cast<Scalar>(2.0) * quat(3) * qCross
+        + static_cast<Scalar>(2.0) * qVector * qVector.transpose();
 }
 
 /**

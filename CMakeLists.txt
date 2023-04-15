@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 set(CMAKE_CXX_STANDARD 17)
 
+# Enable CMake tests
+enable_testing()
+
 # Set project name
 set(This attitudeEstimationControl)
 
 project(${This} VERSION 1.0.0)
 
 set(PROJECT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
-# Enable CMake tests
-enable_testing()
 
 # Add third party directories
 add_subdirectory(thirdParty)
