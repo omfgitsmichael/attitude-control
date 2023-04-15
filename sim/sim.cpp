@@ -9,19 +9,26 @@ int main() {
 
     std::cout << theta << "\n" << std::endl;
 
-    attitude::RotationMatrix<double> rotation_matrix_theta = attitude::eulerRotationMatrix(sequence, theta);
+    attitude::RotationMatrix<double> rotation_matrix_theta = attitude::RotationMatrix<double>::Zero();
+
+    bool result1 = attitude::eulerRotationMatrix(sequence, theta, rotation_matrix_theta);
 
     std::cout << rotation_matrix_theta << "\n" << std::endl;
 
-    attitude::Quaternion<double> quaternion = attitude::eulerToQuaternion(sequence, theta);
+    attitude::Quaternion<double> quaternion = attitude::Quaternion<double>::Zero();
+    bool result2 = attitude::eulerToQuaternion(sequence, theta, quaternion);
 
     std::cout << quaternion << "\n" << std::endl;
 
-    attitude::RotationMatrix<double> rotation_matrix_quat = attitude::eulerRotationMatrix(sequence, theta);
+    attitude::RotationMatrix<double> rotation_matrix_quat = attitude::RotationMatrix<double>::Zero();
+
+    bool result3 = attitude::eulerRotationMatrix(sequence, theta, rotation_matrix_quat);
 
     std::cout << rotation_matrix_quat << "\n" << std::endl;
 
-    attitude::EulerAngle<double> theta_compare = attitude::quaternionToEuler(sequence, quaternion);
+    attitude::EulerAngle<double> theta_compare = attitude::EulerAngle<double>::Zero();
+
+    bool result4 = attitude::quaternionToEuler(sequence, quaternion, theta_compare);
 
     std::cout << theta_compare << "\n" << std::endl;
 
@@ -65,7 +72,8 @@ int main() {
 
     Eigen::Vector<double, 3> adaptationLaw = gamma * law;
 
-    Eigen::Vector<double, 3> thetaDot = attitude::projectionOperator(projectionParams, paramEstimate, adaptationLaw);
+    Eigen::Vector<double, 3> thetaDot = Eigen::Vector<double, 3>::Zero();
+    bool result5 = attitude::projectionOperator(projectionParams, paramEstimate, adaptationLaw, thetaDot);
 
     std::cout << thetaDot << "\n" << std::endl;
 
@@ -75,8 +83,9 @@ int main() {
     attitude::BodyRate<double> wd{0.0, 0.0, 0.0};
     attitude::BodyRate<double> wdd{0.0, 0.0, 0.0};
     attitude::Quaternion<double> qd{-0.0446, 0.1227, 0.3391, 0.9317};
-    
-    Eigen::Vector<double, 3> u = passivityBasedAdaptiveController.calculateControl(q, qd, w, wd, wdd);
+    Eigen::Vector<double, 3> u = Eigen::Vector<double, 3>::Zero();
+
+    bool result6 = passivityBasedAdaptiveController.calculateControl(q, qd, w, wd, wdd, u);
 
     std::cout << u << std::endl;
 

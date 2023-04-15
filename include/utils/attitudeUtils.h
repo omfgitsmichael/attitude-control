@@ -15,10 +15,11 @@ namespace attitude {
  * John L. Junkins, Pages 759 - 760
  * Input: sequence - String which determines the rotation sequence
  * Input: theta - The Euler angles
- * output: Rotation matrix
+ * Input: rotation - The rotation matrix
+ * output: Boolean if it successuly created or not
 **/
 template <typename Scalar>
-inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, const EulerAngle<Scalar>& theta)
+inline bool eulerRotationMatrix(const std::string& sequence, const EulerAngle<Scalar>& theta, RotationMatrix<Scalar>& rotation)
 {
     const Scalar c1 = static_cast<Scalar>(std::cos(theta(0)));
     const Scalar c2 = static_cast<Scalar>(std::cos(theta(1)));
@@ -27,7 +28,7 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
     const Scalar s2 = static_cast<Scalar>(std::sin(theta(1)));
     const Scalar s3 = static_cast<Scalar>(std::sin(theta(2)));
 
-    RotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
+    bool result = false;
 
     if (sequence.compare("121") == 0) {
         rotation(0, 0) = c2;
@@ -41,6 +42,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = c3 * s2;
         rotation(2, 1) = -(c3 * c2 * s1 + s3 * c1);
         rotation(2, 2) = c3 * c2 * c1 - s3 * s1;
+
+        result = true;
     } else if (sequence.compare("123") == 0) {
         rotation(0, 0) = c3 * c2;
         rotation(0, 1) = c3 * s2 * s1 + s3 * c1;
@@ -53,6 +56,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s2;
         rotation(2, 1) = -c2 * s1;
         rotation(2, 2) = c2 * c1;
+
+        result = true;
     } else if (sequence.compare("131") == 0) {
         rotation(0, 0) = c2;
         rotation(0, 1) = s2 * c1;
@@ -65,6 +70,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s3 * s2;
         rotation(2, 1) = -(s3 * c2 * c1 + c3 * s1);
         rotation(2, 2) = -s3 * c2 * s1 + c3 * c1;
+
+        result = true;
     } else if (sequence.compare("132") == 0) {
         rotation(0, 0) = c3 * c2;
         rotation(0, 1) = c3 * s2 * c1 + s3 * s1;
@@ -77,6 +84,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s3 * c2;
         rotation(2, 1) = s3 * s2 * c1 - c3 * s1;
         rotation(2, 2) = s3 * s2 * s1 + c3 * c1;
+
+        result = true;
     } else if (sequence.compare("212") == 0) {
         rotation(0, 0) = -s3 * c2 * s1 + c3 * c1;
         rotation(0, 1) = s3 * s2;
@@ -89,6 +98,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = c3 * c2 * s1 + s3 * c1;
         rotation(2, 1) = -c3 * s2;
         rotation(2, 2) = c3 * c2 * c1 - s3 * s1;
+
+        result = true;
     } else if (sequence.compare("213") == 0) {
         rotation(0, 0) = s3 * s2 * s1 + c3 * c1;
         rotation(0, 1) = s3 * c2;
@@ -101,6 +112,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = c2 * s1;
         rotation(2, 1) = -s2;
         rotation(2, 2) = c2 * c1;
+
+        result = true;
     } else if (sequence.compare("231") == 0) {
         rotation(0, 0) = c2 * c1;
         rotation(0, 1) = s2;
@@ -113,6 +126,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s3 * s2 * c1 + c3 * s1;
         rotation(2, 1) = -s3 * c2;
         rotation(2, 2) = -s3 * s2 * s1 + c3 * c1;
+
+        result = true;
     } else if (sequence.compare("232") == 0) {
         rotation(0, 0) = c3 * c2 * c1 - s3 * s1;
         rotation(0, 1) = c3 * s2;
@@ -125,6 +140,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s3 * c2 * c1 + c3 * s1;
         rotation(2, 1) = s3 * s2;
         rotation(2, 2) = -s3 * c2 * s1 + c3 * c1;
+
+        result = true;
     } else if (sequence.compare("312") == 0) {
         rotation(0, 0) = -s3 * s2 * s1 + c3 * c1;
         rotation(0, 1) = s3 * s2 * c1 + c3 * s1;
@@ -137,6 +154,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = c3 * s2 * s1 + s3 * c1;
         rotation(2, 1) = -c3 * s2 * c1 + s3 * s1;
         rotation(2, 2) = c3 * c2;
+
+        result = true;
     } else if (sequence.compare("313") == 0) {
         rotation(0, 0) = -s3 * c2 * s1 + c3 * c1;
         rotation(0, 1) = s3 * c2 * c1 + c3 * s1;
@@ -149,6 +168,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s2 * s1;
         rotation(2, 1) = -s2 * c1;
         rotation(2, 2) = c2;
+
+        result = true;
     } else if (sequence.compare("321") == 0) {
         rotation(0, 0) = c2 * c1;
         rotation(0, 1) = c2 * s1;
@@ -161,6 +182,8 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = c3 * s2 * c1 + s3 * s1;
         rotation(2, 1) = c3 * s2 * s1 - s3 * c1;
         rotation(2, 2) = c3 * c2;
+
+        result = true;
     } else if (sequence.compare("323") == 0) {
         rotation(0, 0) = c3 * c2 * c1 - s3 * s1;
         rotation(0, 1) = c3 * c2 * s1 + s3 * c1;
@@ -173,11 +196,11 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
         rotation(2, 0) = s2 * c1;
         rotation(2, 1) = s2 * s1;
         rotation(2, 2) = c2;
-    } else {
-        // TODO::Need to add a default case in case the wrong sequence is input
+
+        result = true;
     }
     
-    return rotation;
+    return result;
 }
 
 /**
@@ -185,12 +208,17 @@ inline RotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, c
  * Guidance and Control, Vol. 1, No. 3, pp. 223 - 224, 1978
  * Input: sequence - String which determines the rotation sequence
  * Input: theta - The Euler angles
- * output: Attitude quaternion
+ * Input: quat - The quaternion
+ * output: Boolean if it successfully created or not
 **/
 template<typename Scalar>
-inline Quaternion<Scalar> eulerToQuaternion(const std::string& sequence, const EulerAngle<Scalar>& theta)
+inline bool eulerToQuaternion(const std::string& sequence, const EulerAngle<Scalar>& theta, Quaternion<Scalar>& quat)
 {
-    const RotationMatrix<Scalar> rotation = eulerRotationMatrix(sequence, theta);
+    RotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
+    const bool result = eulerRotationMatrix(sequence, theta, rotation);
+    if (!result) {
+        return false;
+    }
 
     Quaternion<Scalar> qTemp = Quaternion<Scalar>::Zero();
 
@@ -224,7 +252,9 @@ inline Quaternion<Scalar> eulerToQuaternion(const std::string& sequence, const E
         qTemp(3) = static_cast<Scalar>(0.5) * value;
     }
 
-    return Quaternion<Scalar>{qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
+    quat = {qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
+
+    return true;
 }
 
 /**
@@ -251,68 +281,91 @@ inline RotationMatrix<Scalar> quaternionRotationMatrix(const Quaternion<Scalar>&
  * Schaub andvJohn L. Junkins, Pages 759 - 760
  * Input: sequence - String which determines the rotation sequence
  * Input: quat - The attitude quaternion
- * output: Euler angle in desired sequence
+ * Input: euler - Euler angle in desired sequence
+ * output: Boolean if it successfully created or not
 **/
 template<typename Scalar>
-inline EulerAngle<Scalar> quaternionToEuler(const std::string& sequence, const Quaternion<Scalar>& quat)
+inline bool quaternionToEuler(const std::string& sequence, const Quaternion<Scalar>& quat, EulerAngle<Scalar>& euler)
 {
     const RotationMatrix<Scalar> rotation = quaternionRotationMatrix(quat);
 
-    EulerAngle<Scalar> euler = EulerAngle<Scalar>::Zero();
+    bool result = false;
 
     if (sequence.compare("121") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 1), -rotation(0, 2)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(0, 0)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 0), rotation(2, 0)));
+
+        result = true;
     } else if (sequence.compare("123") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(-rotation(2, 1), rotation(2, 2)));
         euler(1) = static_cast<Scalar>(std::asin(rotation(2, 0)));
         euler(2) = static_cast<Scalar>(std::atan2(-rotation(1, 0), rotation(0, 0)));
+
+        result = true;
     } else if (sequence.compare("131") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 2), rotation(0, 1)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(0, 0)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 0), -rotation(1, 0)));
+
+        result = true;
     } else if (sequence.compare("132") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 2), rotation(1, 1)));
         euler(1) = static_cast<Scalar>(std::asin(-rotation(1, 0)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 0), rotation(0, 0)));
+
+        result = true;
     } else if (sequence.compare("212") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 0), rotation(1, 2)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(1, 1)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 1), -rotation(2, 1)));
+
+        result = true;
     } else if (sequence.compare("213") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 0), rotation(2, 2)));
         euler(1) = static_cast<Scalar>(std::asin(-rotation(2, 1)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 1), rotation(1, 1)));
+
+        result = true;
     } else if (sequence.compare("231") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(-rotation(0, 2), rotation(0, 0)));
         euler(1) = static_cast<Scalar>(std::asin(rotation(0, 1)));
         euler(2) = static_cast<Scalar>(std::atan2(-rotation(2, 1), rotation(1, 1)));
+
+        result = true;
     } else if (sequence.compare("232") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 2), -rotation(1, 0)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(1, 1)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 1), rotation(0, 1)));
+
+        result = true;
     } else if (sequence.compare("312") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(-rotation(1, 0), rotation(1, 1)));
         euler(1) = static_cast<Scalar>(std::asin(rotation(1, 2)));
         euler(2) = static_cast<Scalar>(std::atan2(-rotation(0, 2), rotation(2, 2)));
+
+        result = true;
     } else if (sequence.compare("313") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 0), -rotation(2, 1)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(2, 2)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 2), rotation(1, 2)));
+
+        result = true;
     } else if (sequence.compare("321") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 1), rotation(0, 0)));
         euler(1) = static_cast<Scalar>(std::asin(-rotation(0, 2)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 2), rotation(2, 2)));
+
+        result = true;
     } else if (sequence.compare("323") == 0) {
         euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 1), rotation(2, 0)));
         euler(1) = static_cast<Scalar>(std::acos(rotation(2, 2)));
         euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 2), -rotation(0, 2)));
-    } else {
-        // TODO::Need to add a default case in case the wrong sequence is input
+
+        result = true;
     }
 
-    return euler;
+    return result;
 }
 
 /**

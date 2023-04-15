@@ -39,13 +39,15 @@ class PassivityBasedAdaptiveControl
     * Input: omega - The current angular body rates
     * Input: omegaDesired - The desired angular body rates
     * Input: omegaDotDesired - The desired angular body acceleration
-    * output: Control torque
+    * Input: control - The desired control torque
+    * output: Boolean if it successfully completed or not
     **/
-    Eigen::Vector<Scalar, 3> calculateControl(const Quaternion<Scalar>& quat,
-                                              const Quaternion<Scalar>& quatDesired,
-                                              const BodyRate<Scalar>& omega,
-                                              const BodyRate<Scalar>& omegaDesired,
-                                              const BodyRate<Scalar>& omegaDotDesired)
+    bool calculateControl(const Quaternion<Scalar>& quat,
+                          const Quaternion<Scalar>& quatDesired,
+                          const BodyRate<Scalar>& omega,
+                          const BodyRate<Scalar>& omegaDesired,
+                          const BodyRate<Scalar>& omegaDotDesired,
+                          Eigen::Vector<Scalar, 3>& control)
     {
       // Calculate the errors
       Quaternion<Scalar> quatError = quatMultiply(quat, quatInverse(quatDesired));
@@ -66,20 +68,34 @@ class PassivityBasedAdaptiveControl
                                                   {-omega(0) * omegaR(1), omega(1) * omegaR(0), omegaRRate(2)}};
 
       // Update parameter estimates
-      const Scalar deadzone = deadzoneOperator(controllerParams_.deadzoneParams, s);
+      bool result = false;
+      Scalar deadzone = 0.0;
+      result = deadzoneOperator(controllerParams_.deadzoneParams, s, deadzone);
+
+      if (!result) {
+        return result;
+      }
+
       const Eigen::Vector<Scalar, 3> adapationLaws = -controllerParams_.gammaInv * regressor.transpose() * s * deadzone;
-      estimatedParams_ += projectionOperator(controllerParams_.projectionParams, estimatedParams_, adapationLaws) * controllerParams_.dt;
+      Eigen::Vector<Scalar, 3> estimatedParamsRate = Eigen::Vector<Scalar, 3>::Zero();
+
+      result = projectionOperator(controllerParams_.projectionParams, estimatedParams_, adapationLaws, estimatedParamsRate);
+
+      if (!result){
+        return result;
+      }
+      
+      estimatedParams_ += estimatedParamsRate * controllerParams_.dt;
 
       // Calculate the adaptive control
-      u_ = regressor * estimatedParams_ - controllerParams_.k * s;
+      control = regressor * estimatedParams_ - controllerParams_.k * s;
       
-      return u_;
+      return result;
     }
 
   private:
     Params controllerParams_;
     Eigen::Vector<Scalar, 3> estimatedParams_ = Eigen::Vector<Scalar, 3>::Zero();
-    Eigen::Vector<Scalar, 3> u_ = Eigen::Vector<Scalar, 3>::Zero();
 };
 
 } // namespace attitude
