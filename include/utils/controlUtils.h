@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include "utils/typenames.h"
+#include "types/typenames.h"
 
 namespace attitude {
 

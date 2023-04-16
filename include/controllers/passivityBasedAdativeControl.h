@@ -1,7 +1,7 @@
 #ifndef PASSIVITY_BASED_ADAPTIVE_CONTROL_H_
 #define PASSIVITY_BASED_ADAPTIVE_CONTROL_H_
 
-#include "utils/typenames.h"
+#include "quaternions/quaternionMath.h"
 #include "utils/controlUtils.h"
 
 namespace attitude {
@@ -50,7 +50,7 @@ class PassivityBasedAdaptiveControl
                           Eigen::Vector<Scalar, 3>& control)
     {
       // Calculate the errors
-      Quaternion<Scalar> quatError = quatMultiply(quat, quatInverse(quatDesired));
+      Quaternion<Scalar> quatError = quaternionError(quat, quatDesired);
       BodyRate<Scalar> omegaError = omega - omegaDesired;
       Quaternion<Scalar> quatErrorRate = quaternionKinematics(quatError, omegaError);
 

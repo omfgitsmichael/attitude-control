@@ -1,12 +1,10 @@
 #ifndef ATTITUDE_UTILS_H_
 #define ATTITUDE_UTILS_H_
 
-#include <string>
 #include <cmath>
+#include <string>
 
-#include <iostream>
-
-#include "utils/typenames.h"
+#include "types/typenames.h"
 
 namespace attitude {
 
@@ -15,11 +13,10 @@ namespace attitude {
  * John L. Junkins, Pages 759 - 760
  * Input: sequence - String which determines the rotation sequence
  * Input: theta - The Euler angles
- * Input: rotation - The rotation matrix
- * output: Boolean if it successuly created or not
+ * output: Optional rotation matrix
 **/
 template <typename Scalar>
-inline bool eulerRotationMatrix(const std::string& sequence, const EulerAngle<Scalar>& theta, RotationMatrix<Scalar>& rotation)
+inline OptionalRotationMatrix<Scalar> eulerRotationMatrix(const std::string& sequence, const EulerAngle<Scalar>& theta)
 {
     const Scalar c1 = static_cast<Scalar>(std::cos(theta(0)));
     const Scalar c2 = static_cast<Scalar>(std::cos(theta(1)));
@@ -28,179 +25,179 @@ inline bool eulerRotationMatrix(const std::string& sequence, const EulerAngle<Sc
     const Scalar s2 = static_cast<Scalar>(std::sin(theta(1)));
     const Scalar s3 = static_cast<Scalar>(std::sin(theta(2)));
 
-    bool result = false;
+    OptionalRotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
 
     if (sequence.compare("121") == 0) {
-        rotation(0, 0) = c2;
-        rotation(0, 1) = s2 * s1;
-        rotation(0, 2) = -s2 * c1;
+        (*rotation)(0, 0) = c2;
+        (*rotation)(0, 1) = s2 * s1;
+        (*rotation)(0, 2) = -s2 * c1;
 
-        rotation(1, 0) = s3 * s2;
-        rotation(1, 1) = -s3 * c2 * s1 + c3 * c1;
-        rotation(1, 2) = s3 * c2 * c1 + c3 * s1;
+        (*rotation)(1, 0) = s3 * s2;
+        (*rotation)(1, 1) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(1, 2) = s3 * c2 * c1 + c3 * s1;
 
-        rotation(2, 0) = c3 * s2;
-        rotation(2, 1) = -(c3 * c2 * s1 + s3 * c1);
-        rotation(2, 2) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(2, 0) = c3 * s2;
+        (*rotation)(2, 1) = -(c3 * c2 * s1 + s3 * c1);
+        (*rotation)(2, 2) = c3 * c2 * c1 - s3 * s1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("123") == 0) {
-        rotation(0, 0) = c3 * c2;
-        rotation(0, 1) = c3 * s2 * s1 + s3 * c1;
-        rotation(0, 2) = -c3 * s2 * c1 + s3 * s1;
+        (*rotation)(0, 0) = c3 * c2;
+        (*rotation)(0, 1) = c3 * s2 * s1 + s3 * c1;
+        (*rotation)(0, 2) = -c3 * s2 * c1 + s3 * s1;
 
-        rotation(1, 0) = -s3 * c2;
-        rotation(1, 1) = -s3 * s2 * s1 + c3 * c1;
-        rotation(1, 2) = s3 * s2 * c1 + c3 * s1;
+        (*rotation)(1, 0) = -s3 * c2;
+        (*rotation)(1, 1) = -s3 * s2 * s1 + c3 * c1;
+        (*rotation)(1, 2) = s3 * s2 * c1 + c3 * s1;
 
-        rotation(2, 0) = s2;
-        rotation(2, 1) = -c2 * s1;
-        rotation(2, 2) = c2 * c1;
+        (*rotation)(2, 0) = s2;
+        (*rotation)(2, 1) = -c2 * s1;
+        (*rotation)(2, 2) = c2 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("131") == 0) {
-        rotation(0, 0) = c2;
-        rotation(0, 1) = s2 * c1;
-        rotation(0, 2) = s2 * s1;
+        (*rotation)(0, 0) = c2;
+        (*rotation)(0, 1) = s2 * c1;
+        (*rotation)(0, 2) = s2 * s1;
 
-        rotation(1, 0) = -c3 * s2;
-        rotation(1, 1) = c3 * c2 * c1 - s3 * s1;
-        rotation(1, 2) = c3 * c2 * s1 + s3 * c1;
+        (*rotation)(1, 0) = -c3 * s2;
+        (*rotation)(1, 1) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(1, 2) = c3 * c2 * s1 + s3 * c1;
 
-        rotation(2, 0) = s3 * s2;
-        rotation(2, 1) = -(s3 * c2 * c1 + c3 * s1);
-        rotation(2, 2) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(2, 0) = s3 * s2;
+        (*rotation)(2, 1) = -(s3 * c2 * c1 + c3 * s1);
+        (*rotation)(2, 2) = -s3 * c2 * s1 + c3 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("132") == 0) {
-        rotation(0, 0) = c3 * c2;
-        rotation(0, 1) = c3 * s2 * c1 + s3 * s1;
-        rotation(0, 2) = c3 * s2 * s1 - s3 * c1;
+        (*rotation)(0, 0) = c3 * c2;
+        (*rotation)(0, 1) = c3 * s2 * c1 + s3 * s1;
+        (*rotation)(0, 2) = c3 * s2 * s1 - s3 * c1;
 
-        rotation(1, 0) = -s2;
-        rotation(1, 1) = c2 * c1;
-        rotation(1, 2) = c2 * s1;
+        (*rotation)(1, 0) = -s2;
+        (*rotation)(1, 1) = c2 * c1;
+        (*rotation)(1, 2) = c2 * s1;
 
-        rotation(2, 0) = s3 * c2;
-        rotation(2, 1) = s3 * s2 * c1 - c3 * s1;
-        rotation(2, 2) = s3 * s2 * s1 + c3 * c1;
+        (*rotation)(2, 0) = s3 * c2;
+        (*rotation)(2, 1) = s3 * s2 * c1 - c3 * s1;
+        (*rotation)(2, 2) = s3 * s2 * s1 + c3 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("212") == 0) {
-        rotation(0, 0) = -s3 * c2 * s1 + c3 * c1;
-        rotation(0, 1) = s3 * s2;
-        rotation(0, 2) = -(s3 * c2 * c1 + c3 * s1);
+        (*rotation)(0, 0) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(0, 1) = s3 * s2;
+        (*rotation)(0, 2) = -(s3 * c2 * c1 + c3 * s1);
 
-        rotation(1, 0) = s2 * s1;
-        rotation(1, 1) = c2;
-        rotation(1, 2) = s2 * c1;
+        (*rotation)(1, 0) = s2 * s1;
+        (*rotation)(1, 1) = c2;
+        (*rotation)(1, 2) = s2 * c1;
 
-        rotation(2, 0) = c3 * c2 * s1 + s3 * c1;
-        rotation(2, 1) = -c3 * s2;
-        rotation(2, 2) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(2, 0) = c3 * c2 * s1 + s3 * c1;
+        (*rotation)(2, 1) = -c3 * s2;
+        (*rotation)(2, 2) = c3 * c2 * c1 - s3 * s1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("213") == 0) {
-        rotation(0, 0) = s3 * s2 * s1 + c3 * c1;
-        rotation(0, 1) = s3 * c2;
-        rotation(0, 2) = s3 * s2 * c1 - c3 * s1;
+        (*rotation)(0, 0) = s3 * s2 * s1 + c3 * c1;
+        (*rotation)(0, 1) = s3 * c2;
+        (*rotation)(0, 2) = s3 * s2 * c1 - c3 * s1;
 
-        rotation(1, 0) = c3 * s2 * s1 - s3 * c1;
-        rotation(1, 1) = c3 * c2;
-        rotation(1, 2) = c3 * s2 * c1 + s3 * s1;
+        (*rotation)(1, 0) = c3 * s2 * s1 - s3 * c1;
+        (*rotation)(1, 1) = c3 * c2;
+        (*rotation)(1, 2) = c3 * s2 * c1 + s3 * s1;
 
-        rotation(2, 0) = c2 * s1;
-        rotation(2, 1) = -s2;
-        rotation(2, 2) = c2 * c1;
+        (*rotation)(2, 0) = c2 * s1;
+        (*rotation)(2, 1) = -s2;
+        (*rotation)(2, 2) = c2 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("231") == 0) {
-        rotation(0, 0) = c2 * c1;
-        rotation(0, 1) = s2;
-        rotation(0, 2) = -c2 * s1;
+        (*rotation)(0, 0) = c2 * c1;
+        (*rotation)(0, 1) = s2;
+        (*rotation)(0, 2) = -c2 * s1;
 
-        rotation(1, 0) = -c3 * s2 * c1 + s3 * s1;
-        rotation(1, 1) = c3 * c2;
-        rotation(1, 2) = c3 * s2 * s1 + s3 * c1;
+        (*rotation)(1, 0) = -c3 * s2 * c1 + s3 * s1;
+        (*rotation)(1, 1) = c3 * c2;
+        (*rotation)(1, 2) = c3 * s2 * s1 + s3 * c1;
 
-        rotation(2, 0) = s3 * s2 * c1 + c3 * s1;
-        rotation(2, 1) = -s3 * c2;
-        rotation(2, 2) = -s3 * s2 * s1 + c3 * c1;
+        (*rotation)(2, 0) = s3 * s2 * c1 + c3 * s1;
+        (*rotation)(2, 1) = -s3 * c2;
+        (*rotation)(2, 2) = -s3 * s2 * s1 + c3 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("232") == 0) {
-        rotation(0, 0) = c3 * c2 * c1 - s3 * s1;
-        rotation(0, 1) = c3 * s2;
-        rotation(0, 2) = -(c3 * c2 * s1 + s3 * c1);
+        (*rotation)(0, 0) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(0, 1) = c3 * s2;
+        (*rotation)(0, 2) = -(c3 * c2 * s1 + s3 * c1);
 
-        rotation(1, 0) = -s2 * c1;
-        rotation(1, 1) = c2;
-        rotation(1, 2) = s2 * s1;
+        (*rotation)(1, 0) = -s2 * c1;
+        (*rotation)(1, 1) = c2;
+        (*rotation)(1, 2) = s2 * s1;
 
-        rotation(2, 0) = s3 * c2 * c1 + c3 * s1;
-        rotation(2, 1) = s3 * s2;
-        rotation(2, 2) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(2, 0) = s3 * c2 * c1 + c3 * s1;
+        (*rotation)(2, 1) = s3 * s2;
+        (*rotation)(2, 2) = -s3 * c2 * s1 + c3 * c1;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("312") == 0) {
-        rotation(0, 0) = -s3 * s2 * s1 + c3 * c1;
-        rotation(0, 1) = s3 * s2 * c1 + c3 * s1;
-        rotation(0, 2) = -s3 * c2;
+        (*rotation)(0, 0) = -s3 * s2 * s1 + c3 * c1;
+        (*rotation)(0, 1) = s3 * s2 * c1 + c3 * s1;
+        (*rotation)(0, 2) = -s3 * c2;
 
-        rotation(1, 0) = -c2 * s1;
-        rotation(1, 1) = c2 * c1;
-        rotation(1, 2) = s2;
+        (*rotation)(1, 0) = -c2 * s1;
+        (*rotation)(1, 1) = c2 * c1;
+        (*rotation)(1, 2) = s2;
 
-        rotation(2, 0) = c3 * s2 * s1 + s3 * c1;
-        rotation(2, 1) = -c3 * s2 * c1 + s3 * s1;
-        rotation(2, 2) = c3 * c2;
+        (*rotation)(2, 0) = c3 * s2 * s1 + s3 * c1;
+        (*rotation)(2, 1) = -c3 * s2 * c1 + s3 * s1;
+        (*rotation)(2, 2) = c3 * c2;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("313") == 0) {
-        rotation(0, 0) = -s3 * c2 * s1 + c3 * c1;
-        rotation(0, 1) = s3 * c2 * c1 + c3 * s1;
-        rotation(0, 2) = s3 * s2;
+        (*rotation)(0, 0) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(0, 1) = s3 * c2 * c1 + c3 * s1;
+        (*rotation)(0, 2) = s3 * s2;
 
-        rotation(1, 0) = -(c3 * c2 * s1 + s3 * c1);
-        rotation(1, 1) = c3 * c2 * c1 - s3 * s1;
-        rotation(1, 2) = c3 * s2;
+        (*rotation)(1, 0) = -(c3 * c2 * s1 + s3 * c1);
+        (*rotation)(1, 1) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(1, 2) = c3 * s2;
 
-        rotation(2, 0) = s2 * s1;
-        rotation(2, 1) = -s2 * c1;
-        rotation(2, 2) = c2;
+        (*rotation)(2, 0) = s2 * s1;
+        (*rotation)(2, 1) = -s2 * c1;
+        (*rotation)(2, 2) = c2;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("321") == 0) {
-        rotation(0, 0) = c2 * c1;
-        rotation(0, 1) = c2 * s1;
-        rotation(0, 2) = -s2;
+        (*rotation)(0, 0) = c2 * c1;
+        (*rotation)(0, 1) = c2 * s1;
+        (*rotation)(0, 2) = -s2;
 
-        rotation(1, 0) = s3 * s2 * c1 - c3 * s1;
-        rotation(1, 1) = s3 * s2 * s1 + c3 * c1;
-        rotation(1, 2) = s3 * c2;
+        (*rotation)(1, 0) = s3 * s2 * c1 - c3 * s1;
+        (*rotation)(1, 1) = s3 * s2 * s1 + c3 * c1;
+        (*rotation)(1, 2) = s3 * c2;
 
-        rotation(2, 0) = c3 * s2 * c1 + s3 * s1;
-        rotation(2, 1) = c3 * s2 * s1 - s3 * c1;
-        rotation(2, 2) = c3 * c2;
+        (*rotation)(2, 0) = c3 * s2 * c1 + s3 * s1;
+        (*rotation)(2, 1) = c3 * s2 * s1 - s3 * c1;
+        (*rotation)(2, 2) = c3 * c2;
 
-        result = true;
+        return rotation;
     } else if (sequence.compare("323") == 0) {
-        rotation(0, 0) = c3 * c2 * c1 - s3 * s1;
-        rotation(0, 1) = c3 * c2 * s1 + s3 * c1;
-        rotation(0, 2) = -c3 * s2;
+        (*rotation)(0, 0) = c3 * c2 * c1 - s3 * s1;
+        (*rotation)(0, 1) = c3 * c2 * s1 + s3 * c1;
+        (*rotation)(0, 2) = -c3 * s2;
 
-        rotation(1, 0) = -(s3 * c2 * c1 + c3 * s1);
-        rotation(1, 1) = -s3 * c2 * s1 + c3 * c1;
-        rotation(1, 2) = s3 * s2;
+        (*rotation)(1, 0) = -(s3 * c2 * c1 + c3 * s1);
+        (*rotation)(1, 1) = -s3 * c2 * s1 + c3 * c1;
+        (*rotation)(1, 2) = s3 * s2;
 
-        rotation(2, 0) = s2 * c1;
-        rotation(2, 1) = s2 * s1;
-        rotation(2, 2) = c2;
+        (*rotation)(2, 0) = s2 * c1;
+        (*rotation)(2, 1) = s2 * s1;
+        (*rotation)(2, 2) = c2;
 
-        result = true;
+        return rotation;
     }
     
-    return result;
+    return std::nullopt;
 }
 
 /**
@@ -208,72 +205,72 @@ inline bool eulerRotationMatrix(const std::string& sequence, const EulerAngle<Sc
  * Guidance and Control, Vol. 1, No. 3, pp. 223 - 224, 1978
  * Input: sequence - String which determines the rotation sequence
  * Input: theta - The Euler angles
- * Input: quat - The quaternion
- * output: Boolean if it successfully created or not
+ * output: Optional attitude quaternion
 **/
 template<typename Scalar>
-inline bool eulerToQuaternion(const std::string& sequence, const EulerAngle<Scalar>& theta, Quaternion<Scalar>& quat)
+inline OptionalQuaternion<Scalar> eulerToQuaternion(const std::string& sequence, const EulerAngle<Scalar>& theta)
 {
-    RotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
-    const bool result = eulerRotationMatrix(sequence, theta, rotation);
-    if (!result) {
-        return false;
+    const auto rotation = eulerRotationMatrix(sequence, theta);
+    if (!rotation) {
+        return std::nullopt;
     }
 
     Quaternion<Scalar> qTemp = Quaternion<Scalar>::Zero();
 
-    if (rotation(1, 1) > -rotation(2, 2) && rotation(0, 0) > -rotation(1, 1) && rotation(0, 0) > -rotation(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + rotation(0, 0) + rotation(1, 1) + rotation(2, 2)));
+    if ((*rotation)(1, 1) > -(*rotation)(2, 2) && (*rotation)(0, 0) > -(*rotation)(1, 1) && (*rotation)(0, 0) > -(*rotation)(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + (*rotation)(0, 0) + (*rotation)(1, 1) + (*rotation)(2, 2)));
 
         qTemp(0) = static_cast<Scalar>(0.5) * value;
-        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(1, 2) - rotation(2, 1)) / value;
-        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(2, 0) - rotation(0, 2)) / value;
-        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(0, 1) - rotation(1, 0)) / value;
-    } else if (rotation(1, 1) < -rotation(2, 2) && rotation(0, 0) > rotation(1, 1) && rotation(0, 0) > rotation(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + rotation(0, 0) - rotation(1, 1) - rotation(2, 2)));
+        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) - (*rotation)(2, 1)) / value;
+        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) - (*rotation)(0, 2)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) - (*rotation)(1, 0)) / value;
+    } else if ((*rotation)(1, 1) < -(*rotation)(2, 2) && (*rotation)(0, 0) > (*rotation)(1, 1) && (*rotation)(0, 0) > (*rotation)(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + (*rotation)(0, 0) - (*rotation)(1, 1) - (*rotation)(2, 2)));
 
-        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(1, 2) - rotation(2, 1)) / value;
+        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) - (*rotation)(2, 1)) / value;
         qTemp(1) = static_cast<Scalar>(0.5) * value;
-        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(0, 1) + rotation(1, 0)) / value;
-        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(2, 0) + rotation(0, 2)) / value;
-    } else if (rotation(1, 1) > rotation(2, 2) && rotation(0, 0) < rotation(1, 1) && rotation(0, 0) < -rotation(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - rotation(0, 0) + rotation(1, 1) - rotation(2, 2)));
+        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) + (*rotation)(1, 0)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) + (*rotation)(0, 2)) / value;
+    } else if ((*rotation)(1, 1) > (*rotation)(2, 2) && (*rotation)(0, 0) < (*rotation)(1, 1) && (*rotation)(0, 0) < -(*rotation)(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - (*rotation)(0, 0) + (*rotation)(1, 1) - (*rotation)(2, 2)));
 
-        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(2, 0) - rotation(0, 2)) / value;
-        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(0, 1) + rotation(1, 0)) / value;
+        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) - (*rotation)(0, 2)) / value;
+        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) + (*rotation)(1, 0)) / value;
         qTemp(2) = static_cast<Scalar>(0.5) * value;
-        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(1, 2) + rotation(2, 1)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) + (*rotation)(2, 1)) / value;
     } else {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - rotation(0, 0) - rotation(1, 1) + rotation(2, 2)));
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - (*rotation)(0, 0) - (*rotation)(1, 1) + (*rotation)(2, 2)));
 
-        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(0, 1) - rotation(1, 0)) / value;
-        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(2, 0) + rotation(0, 2)) / value;
-        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(1, 2) + rotation(2, 1)) / value;
+        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) - (*rotation)(1, 0)) / value;
+        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) + (*rotation)(0, 2)) / value;
+        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) + (*rotation)(2, 1)) / value;
         qTemp(3) = static_cast<Scalar>(0.5) * value;
     }
 
-    quat = {qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
-
-    return true;
+    OptionalQuaternion<Scalar> quat = Quaternion<Scalar>{qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
+    return quat;
 }
 
 /**
  * Converts the quaternion into a rotation matrix. Referenced from Analytics of Space Systems by Hanspeter Schaub and
  * John L. Junkins and various other sources
  * Input: quat - The attitude quaternion 
- * output: Rotation matrix
+ * output: Optional rotation matrix
 **/
 template<typename Scalar>
-inline RotationMatrix<Scalar> quaternionRotationMatrix(const Quaternion<Scalar>& quat)
+inline OptionalRotationMatrix<Scalar> quaternionRotationMatrix(const Quaternion<Scalar>& quat)
 {
-     // Quaternion vector skew symmetric matrix 
+    // Quaternion vector skew symmetric matrix 
     const Eigen::Matrix<Scalar, 3, 3> qCross{{0.0, -quat(2), quat(1)}, {quat(2), 0.0, -quat(0)}, {-quat(1), quat(0), 0.0}};
 
     const Eigen::Vector<Scalar, 3> qVector{quat(0), quat(1), quat(2)};                    /// Quaternion vector component
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity(); /// Identity matrix
-
-    return (quat(3) * quat(3) - qVector.squaredNorm()) * identity - static_cast<Scalar>(2.0) * quat(3) * qCross
+    
+    OptionalRotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
+    (*rotation) = (quat(3) * quat(3) - qVector.squaredNorm()) * identity - static_cast<Scalar>(2.0) * quat(3) * qCross
         + static_cast<Scalar>(2.0) * qVector * qVector.transpose();
+
+    return rotation;
 }
 
 /**
@@ -281,157 +278,89 @@ inline RotationMatrix<Scalar> quaternionRotationMatrix(const Quaternion<Scalar>&
  * Schaub andvJohn L. Junkins, Pages 759 - 760
  * Input: sequence - String which determines the rotation sequence
  * Input: quat - The attitude quaternion
- * Input: euler - Euler angle in desired sequence
- * output: Boolean if it successfully created or not
+ * output: Optional euler angle in desired sequence
 **/
 template<typename Scalar>
-inline bool quaternionToEuler(const std::string& sequence, const Quaternion<Scalar>& quat, EulerAngle<Scalar>& euler)
+inline OptionalEulerAngle<Scalar> quaternionToEuler(const std::string& sequence, const Quaternion<Scalar>& quat)
 {
-    const RotationMatrix<Scalar> rotation = quaternionRotationMatrix(quat);
-
-    bool result = false;
+    const OptionalRotationMatrix<Scalar> rotation = quaternionRotationMatrix(quat);
+    OptionalEulerAngle<Scalar> euler = EulerAngle<Scalar>::Zero();
 
     if (sequence.compare("121") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 1), -rotation(0, 2)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(0, 0)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 0), rotation(2, 0)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(0, 1), -(*rotation)(0, 2)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(0, 0)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(1, 0), (*rotation)(2, 0)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("123") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(-rotation(2, 1), rotation(2, 2)));
-        euler(1) = static_cast<Scalar>(std::asin(rotation(2, 0)));
-        euler(2) = static_cast<Scalar>(std::atan2(-rotation(1, 0), rotation(0, 0)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2(-(*rotation)(2, 1), (*rotation)(2, 2)));
+        (*euler)(1) = static_cast<Scalar>(std::asin((*rotation)(2, 0)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2(-(*rotation)(1, 0), (*rotation)(0, 0)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("131") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 2), rotation(0, 1)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(0, 0)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 0), -rotation(1, 0)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(0, 2), (*rotation)(0, 1)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(0, 0)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(2, 0), -(*rotation)(1, 0)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("132") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 2), rotation(1, 1)));
-        euler(1) = static_cast<Scalar>(std::asin(-rotation(1, 0)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 0), rotation(0, 0)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(1, 2), (*rotation)(1, 1)));
+        (*euler)(1) = static_cast<Scalar>(std::asin(-(*rotation)(1, 0)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(2, 0), (*rotation)(0, 0)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("212") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 0), rotation(1, 2)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(1, 1)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 1), -rotation(2, 1)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(1, 0), (*rotation)(1, 2)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(1, 1)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(0, 1), -(*rotation)(2, 1)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("213") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 0), rotation(2, 2)));
-        euler(1) = static_cast<Scalar>(std::asin(-rotation(2, 1)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 1), rotation(1, 1)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(2, 0), (*rotation)(2, 2)));
+        (*euler)(1) = static_cast<Scalar>(std::asin(-(*rotation)(2, 1)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(0, 1), (*rotation)(1, 1)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("231") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(-rotation(0, 2), rotation(0, 0)));
-        euler(1) = static_cast<Scalar>(std::asin(rotation(0, 1)));
-        euler(2) = static_cast<Scalar>(std::atan2(-rotation(2, 1), rotation(1, 1)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2(-(*rotation)(0, 2), (*rotation)(0, 0)));
+        (*euler)(1) = static_cast<Scalar>(std::asin((*rotation)(0, 1)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2(-(*rotation)(2, 1), (*rotation)(1, 1)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("232") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(1, 2), -rotation(1, 0)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(1, 1)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(2, 1), rotation(0, 1)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(1, 2), -(*rotation)(1, 0)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(1, 1)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(2, 1), (*rotation)(0, 1)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("312") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(-rotation(1, 0), rotation(1, 1)));
-        euler(1) = static_cast<Scalar>(std::asin(rotation(1, 2)));
-        euler(2) = static_cast<Scalar>(std::atan2(-rotation(0, 2), rotation(2, 2)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2(-(*rotation)(1, 0), (*rotation)(1, 1)));
+        (*euler)(1) = static_cast<Scalar>(std::asin((*rotation)(1, 2)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2(-(*rotation)(0, 2), (*rotation)(2, 2)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("313") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 0), -rotation(2, 1)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(2, 2)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(0, 2), rotation(1, 2)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(2, 0), -(*rotation)(2, 1)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(2, 2)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(0, 2), (*rotation)(1, 2)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("321") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(0, 1), rotation(0, 0)));
-        euler(1) = static_cast<Scalar>(std::asin(-rotation(0, 2)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 2), rotation(2, 2)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(0, 1), (*rotation)(0, 0)));
+        (*euler)(1) = static_cast<Scalar>(std::asin(-(*rotation)(0, 2)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(1, 2), (*rotation)(2, 2)));
 
-        result = true;
+        return euler;
     } else if (sequence.compare("323") == 0) {
-        euler(0) = static_cast<Scalar>(std::atan2(rotation(2, 1), rotation(2, 0)));
-        euler(1) = static_cast<Scalar>(std::acos(rotation(2, 2)));
-        euler(2) = static_cast<Scalar>(std::atan2(rotation(1, 2), -rotation(0, 2)));
+        (*euler)(0) = static_cast<Scalar>(std::atan2((*rotation)(2, 1), (*rotation)(2, 0)));
+        (*euler)(1) = static_cast<Scalar>(std::acos((*rotation)(2, 2)));
+        (*euler)(2) = static_cast<Scalar>(std::atan2((*rotation)(1, 2), -(*rotation)(0, 2)));
 
-        result = true;
+        return euler;
     }
 
-    return result;
-}
-
-/**
- * Performs the attitude quaternion inverse.
- * Input: quat - The attitude quaternion
- * output: The attitude quaternion inverse
-**/
-template<typename Scalar>
-inline Quaternion<Scalar> quatInverse(const Quaternion<Scalar>& quat)
-{
-    return Quaternion<Scalar>{-quat(0), -quat(1), -quat(2), quat(3)};
-}
-
-/**
- * Performs the attitude quaternion multiplication operator.
- * Input: quat1 - The first attitude quaternion
- * Input: quat2 - The second attitude quaternion
- * output: The product of two attitude quaternions being multiplied
-**/
-template <typename Scalar>
-inline Quaternion<Scalar> quatMultiply(const Quaternion<Scalar>& quat1, const Quaternion<Scalar>& quat2)
-{
-    const Eigen::Vector<Scalar, 3> quat1Vector{quat1(0), quat1(1), quat1(2)};
-    const Eigen::Vector<Scalar, 3> quat2Vector{quat2(0), quat2(1), quat2(2)};
-    const Eigen::Vector<Scalar, 3> crossProduct = quat1Vector.cross(quat2Vector);
-    const Scalar dotProduct = quat1Vector.dot(quat2Vector);
-
-    Quaternion<Scalar> quat = Quaternion<Scalar>::Zero();
-    quat(0) = quat1(3) * quat2(0) + quat2(3) * quat1(0) - crossProduct(0);
-    quat(1) = quat1(3) * quat2(1) + quat2(3) * quat1(1) - crossProduct(1);
-    quat(2) = quat1(3) * quat2(2) + quat2(3) * quat1(2) - crossProduct(2);
-    quat(3) = quat1(3) * quat2(3) - dotProduct;
-
-    return quat;
-}
-
-/**
- * Calculates the error quaternion of quat 1 with respect to quat 2.
- * Input: quat1 - The first attitude quaternion
- * Input: quat2 - The second attitude quaternion
- * output: The error quaternion
-**/
-template <typename Scalar>
-inline Quaternion<Scalar> errorQuaternion(const Quaternion<Scalar>& quat1, const Quaternion<Scalar>& quat2)
-{
-    const Quaternion<Scalar> quat2Inverse = quatInverse(quat2);
-
-    return quatMultiply(quat1, quat2Inverse);
-}
-
-/**
- * Calculates the attitude quaternion rate.
- * Input: quat - The attitude quaternion
- * Input: omega - The vehicle/body angular rate
- * output: The attitude quaternion rate
-**/
-template <typename Scalar>
-inline Quaternion<Scalar> quaternionKinematics(const Quaternion<Scalar>& quat, const BodyRate<Scalar>& omega)
-{
-    // E = [q(4)*eye(3,3) + qCross; -q(1:3)']
-    const Eigen::Matrix<Scalar, 4, 3> E{{quat(3), -quat(2), quat(1)},
-                                        {quat(2), quat(3), -quat(0)},
-                                        {-quat(1), quat(0), quat(3)},
-                                        {-quat(0), -quat(1), -quat(2)}};
-
-    return static_cast<Scalar>(0.5) * E * omega;
+    return std::nullopt;
 }
 
 } // namespace attitude
