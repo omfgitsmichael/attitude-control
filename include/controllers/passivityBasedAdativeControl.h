@@ -2,6 +2,7 @@
 #define PASSIVITY_BASED_ADAPTIVE_CONTROL_H_
 
 #include "quaternions/quaternionMath.h"
+#include "types/typenames.h"
 #include "utils/controlUtils.h"
 
 namespace attitude {
@@ -39,15 +40,13 @@ class PassivityBasedAdaptiveControl
     * Input: omega - The current angular body rates
     * Input: omegaDesired - The desired angular body rates
     * Input: omegaDotDesired - The desired angular body acceleration
-    * Input: control - The desired control torque
-    * output: Boolean if it successfully completed or not
+    * output: Optional desired control torque
     **/
-    bool calculateControl(const Quaternion<Scalar>& quat,
-                          const Quaternion<Scalar>& quatDesired,
-                          const BodyRate<Scalar>& omega,
-                          const BodyRate<Scalar>& omegaDesired,
-                          const BodyRate<Scalar>& omegaDotDesired,
-                          Eigen::Vector<Scalar, 3>& control)
+    std::optional<Eigen::Vector<Scalar, 3>> calculateControl(const Quaternion<Scalar>& quat,
+                                            const Quaternion<Scalar>& quatDesired,
+                                            const BodyRate<Scalar>& omega,
+                                            const BodyRate<Scalar>& omegaDesired,
+                                            const BodyRate<Scalar>& omegaDotDesired)
     {
       // Calculate the errors
       Quaternion<Scalar> quatError = quaternionError(quat, quatDesired);
@@ -68,29 +67,27 @@ class PassivityBasedAdaptiveControl
                                                   {-omega(0) * omegaR(1), omega(1) * omegaR(0), omegaRRate(2)}};
 
       // Update parameter estimates
-      bool result = false;
-      Scalar deadzone = 0.0;
-      result = deadzoneOperator(controllerParams_.deadzoneParams, s, deadzone);
+      std::optional<Scalar> deadzone = deadzoneOperator(controllerParams_.deadzoneParams, s);
 
-      if (!result) {
-        return result;
+      if (!deadzone) {
+        return std::nullopt;
       }
 
-      const Eigen::Vector<Scalar, 3> adapationLaws = -controllerParams_.gammaInv * regressor.transpose() * s * deadzone;
-      Eigen::Vector<Scalar, 3> estimatedParamsRate = Eigen::Vector<Scalar, 3>::Zero();
+      const Eigen::Vector<Scalar, 3> adapationLaws = -controllerParams_.gammaInv * regressor.transpose() * s * (*deadzone);
 
-      result = projectionOperator(controllerParams_.projectionParams, estimatedParams_, adapationLaws, estimatedParamsRate);
+      std::optional<Eigen::Vector<Scalar, 3>> thetaDot = projectionOperator(controllerParams_.projectionParams, estimatedParams_, adapationLaws);
 
-      if (!result){
-        return result;
+      if (!thetaDot){
+        return std::nullopt;
       }
       
-      estimatedParams_ += estimatedParamsRate * controllerParams_.dt;
+      estimatedParams_ += (*thetaDot) * controllerParams_.dt;
 
       // Calculate the adaptive control
-      control = regressor * estimatedParams_ - controllerParams_.k * s;
+      std::optional<Eigen::Vector<Scalar, 3>> u = Eigen::Vector<Scalar, 3>::Zero();
+      (*u) = regressor * estimatedParams_ - controllerParams_.k * s;
       
-      return result;
+      return u;
     }
 
   private:
