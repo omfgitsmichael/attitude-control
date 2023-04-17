@@ -39,7 +39,7 @@ struct PassivityControlData {
 
     // State data
     Quaternion<Scalar> quat = Quaternion<Scalar>::Zero();
-    Quaternion<Scalar> quatDes = Quaternion<Scalar>::Zero();
+    Quaternion<Scalar> quatDesired = Quaternion<Scalar>::Zero();
     BodyRate<Scalar> omega = BodyRate<Scalar>::Zero();
     BodyRate<Scalar> omegaDesired = BodyRate<Scalar>::Zero();
     BodyRate<Scalar> omegaDotDesired = BodyRate<Scalar>::Zero();
