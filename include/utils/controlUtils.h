@@ -46,9 +46,9 @@ inline std::optional<Scalar> deadzoneOperator(const DeadzoneParams<Scalar>& para
 
     Scalar e = error.norm();
 
-    std::optional<Scalar> deadzone;
+    std::optional<Scalar> deadzone = std::make_optional<Scalar>();
     *deadzone = (e - params.del * params.e0) / ((1.0 - params.del) * params.e0);
-    *deadzone = std::max(0.0, std::min(1.0, deadzone));
+    *deadzone = std::max(0.0, std::min(1.0, *deadzone));
 
     return deadzone;
 }

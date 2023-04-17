@@ -55,6 +55,12 @@ using RotationMatrix = Eigen::Matrix<Scalar, 3, 3>;
 template <typename Scalar>
 using OptionalRotationMatrix = std::optional<Eigen::Matrix<Scalar, 3, 3>>;
 
+/**
+ * System control output typename
+**/
+template <typename Scalar>
+using Control = Eigen::Vector<Scalar, 3>;
+
 } // namespace attitude
 
 #endif // TYPENAME_H_

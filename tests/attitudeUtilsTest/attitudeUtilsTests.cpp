@@ -10,7 +10,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     attitude::OptionalRotationMatrix<double> R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992197667, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.001558393, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.124664993, 1e-8);
@@ -25,7 +25,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992120152, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.014056969, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.124499012, 1e-8);
@@ -40,7 +40,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992197667, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.124664993, 1e-8);
     EXPECT_NEAR((*R)(0, 2), 0.001558393, 1e-8);
@@ -55,7 +55,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992120152, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.124811495, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.010940426, 1e-8);
@@ -70,7 +70,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.999688735, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.001558393, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.024899876, 1e-8);
@@ -85,7 +85,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.999863237, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.012402147, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.010940426, 1e-8);
@@ -100,7 +100,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992120152, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.124674733, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.012402147, 1e-8);
@@ -115,7 +115,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.991886402, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.124664993, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.024899876, 1e-8);
@@ -130,7 +130,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.999824278, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.014056969, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.012402147, 1e-8);
@@ -145,7 +145,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.999688735, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.024899876, 1e-8);
     EXPECT_NEAR((*R)(0, 2), 0.001558393, 1e-8);
@@ -160,7 +160,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.992120152, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.012402147, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.124674733, 1e-8);
@@ -175,7 +175,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), 0.991886402, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.024899876, 1e-8);
     EXPECT_NEAR((*R)(0, 2), -0.124664993, 1e-8);
@@ -189,7 +189,7 @@ GTEST_TEST(attitudeUtilsTests, eulerRotationMatrix)
     // Test the default case where the incorrect input was selected
     sequence = "999";
     R = attitude::eulerRotationMatrix<double>(sequence, theta);
-    EXPECT_FALSE(R);
+    ASSERT_FALSE(R);
 }
 
 GTEST_TEST(attitudeUtilsTests, eulerToQuaternion)
@@ -201,7 +201,7 @@ GTEST_TEST(attitudeUtilsTests, eulerToQuaternion)
     attitude::OptionalQuaternion<double> quat = attitude::eulerToQuaternion<double>(sequence, theta);
 
     // Compare results to matlab code
-    EXPECT_TRUE(quat);
+    ASSERT_TRUE(quat);
     EXPECT_NEAR((*quat)(0), 0.012475269, 1e-8);
     EXPECT_NEAR((*quat)(1), 0.062459317, 1e-8);
     EXPECT_NEAR((*quat)(2), 0.0, 1e-8);
@@ -214,7 +214,7 @@ GTEST_TEST(attitudeUtilsTests, eulerToQuaternion)
     quat = attitude::eulerToQuaternion<double>(sequence, theta);
 
     // Compare results to matlab code
-    EXPECT_TRUE(quat);
+    ASSERT_TRUE(quat);
     EXPECT_NEAR((*quat)(0), 1.0, 1e-8);
     EXPECT_NEAR((*quat)(1), 0.0, 1e-8);
     EXPECT_NEAR((*quat)(2), 0.0, 1e-8);
@@ -227,7 +227,7 @@ GTEST_TEST(attitudeUtilsTests, eulerToQuaternion)
     quat = attitude::eulerToQuaternion<double>(sequence, theta);
 
     // Compare results to matlab code
-    EXPECT_TRUE(quat);
+    ASSERT_TRUE(quat);
     EXPECT_NEAR((*quat)(0), 0.0, 1e-8);
     EXPECT_NEAR((*quat)(1), 1.0, 1e-8);
     EXPECT_NEAR((*quat)(2), 0.0, 1e-8);
@@ -240,7 +240,7 @@ GTEST_TEST(attitudeUtilsTests, eulerToQuaternion)
     quat = attitude::eulerToQuaternion<double>(sequence, theta);
 
     // Compare results to matlab code
-    EXPECT_TRUE(quat);
+    ASSERT_TRUE(quat);
     EXPECT_NEAR((*quat)(0), 0.488640453, 1e-8);
     EXPECT_NEAR((*quat)(1), 0.488863292, 1e-8);
     EXPECT_NEAR((*quat)(2), 0.511044053, 1e-8);
@@ -254,7 +254,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionRotationMatrix)
     const attitude::OptionalRotationMatrix<double> R = attitude::quaternionRotationMatrix<double>(quat);
 
     // Compare results to the matlab code
-    EXPECT_TRUE(R);
+    ASSERT_TRUE(R);
     EXPECT_NEAR((*R)(0, 0), -0.002049649, 1e-8);
     EXPECT_NEAR((*R)(0, 1), 0.999997895, 1e-8);
     EXPECT_NEAR((*R)(0, 2), 0.000086753, 1e-8);
@@ -277,7 +277,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     attitude::OptionalEulerAngle<double> thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -288,7 +288,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -299,7 +299,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -310,7 +310,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -321,7 +321,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -332,7 +332,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -343,7 +343,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -354,7 +354,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -365,7 +365,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -376,7 +376,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -387,7 +387,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -398,7 +398,7 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_TRUE(thetaCompare);
+    ASSERT_TRUE(thetaCompare);
     EXPECT_NEAR((*thetaCompare)(0), theta(0), 1e-8);
     EXPECT_NEAR((*thetaCompare)(1), theta(1), 1e-8);
     EXPECT_NEAR((*thetaCompare)(2), theta(2), 1e-8);
@@ -410,8 +410,8 @@ GTEST_TEST(attitudeUtilsTests, quaternionToEuler)
     thetaCompare = attitude::quaternionToEuler<double>(sequence, *quat);
 
     // Compare results
-    EXPECT_FALSE(quat);
-    EXPECT_FALSE(thetaCompare);
+    ASSERT_FALSE(quat);
+    ASSERT_FALSE(thetaCompare);
 }
 
 GTEST_TEST(attitudeUtilsTests, quaternionError)
