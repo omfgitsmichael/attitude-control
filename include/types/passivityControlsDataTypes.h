@@ -1,8 +1,6 @@
 #ifndef PASSIVITY_CONTROLS_DATA_TYPES_H_
 #define PASSIVITY_CONTROLS_DATA_TYPES_H_
 
-#include <memory>
-
 #include "types/typenames.h"
 #include "utils/controlUtils.h"
 
@@ -36,6 +34,9 @@ struct PassivityParams
 **/
 template <typename Scalar>
 struct PassivityControlData {
+  public:
+    PassivityControlData() = default;
+
     // State data
     Quaternion<Scalar> quat = Quaternion<Scalar>::Zero();
     Quaternion<Scalar> quatDes = Quaternion<Scalar>::Zero();
@@ -47,12 +48,6 @@ struct PassivityControlData {
     control::Theta<Scalar> theta = control::Theta<Scalar>::Zero();
     Control<Scalar> u = Control<Scalar>::Zero();
 };
-
-/**
- * Shared pointer to the passivity-based adaptive controls data structure
-**/
-template <typename Scalar>
-using sPassivityControlData = std::shared_ptr<PassivityControlData<Scalar>>;
 
 } // namespace attitude
 
