@@ -27,19 +27,13 @@ class Sim {
     Sim(Scalar dt,
         const std::string& sequence,
         const EulerAngle<Scalar>& eulerInit,
-        Scalar attitudeNoise,
         const BodyRate<Scalar>& omegaInit,
-        Scalar omegaNoise,
         const BodyRate<Scalar>& omegaDotInit,
-        Scalar omegaDotNoise,
         const Eigen::Matrix<Scalar, 3, 3>& inertialMatrix) :
     dt_(dt),
     sequence_(sequence),
     omega_(omegaInit),
     omegaDot_(omegaDotInit),
-    noiseAttitude_(static_cast<Scalar>(0.0), attitudeNoise),
-    noiseOmega_(static_cast<Scalar>(0.0), omegaNoise),
-    noiseOmegaDot_(static_cast<Scalar>(0.0), omegaDotNoise),
     intertialMatrix_(inertialMatrix)
     {
         OptionalQuaternion<Scalar> quat = eulerToQuaternion<Scalar>(sequence_, eulerInit);
@@ -70,40 +64,25 @@ class Sim {
         return quaternion_;
     }
 
-    EulerAngle<Scalar> getAttitude(bool addNoise) const
+    EulerAngle<Scalar> getAttitude() const
     {
         OptionalEulerAngle<Scalar> euler = quaternionToEuler<Scalar>(sequence_, quaternion_);
 
-        EulerAngle<Scalar> noise = EulerAngle<Scalar>::Zero();
-        if (addNoise) {
-            // noise = {noiseAttitude_(generator_), noiseAttitude_(generator_), noiseAttitude_(generator_)};
-        }
-
         if (euler) {
-            return (*euler) + noise;
+            return (*euler);
         }
 
         return EulerAngle<Scalar>::Zero();
     }
 
-    BodyRate<Scalar> getOmega(bool addNoise) const
+    BodyRate<Scalar> getOmega() const
     {
-        EulerAngle<Scalar> noise = EulerAngle<Scalar>::Zero();
-        if (addNoise) {
-            // noise = {noiseAttitude_(generator_), noiseAttitude_(generator_), noiseAttitude_(generator_)};
-        }
-
-        return omega_ + noise;
+        return omega_;
     }
 
-    BodyRate<Scalar> getOmegaDot(bool addNoise) const
+    BodyRate<Scalar> getOmegaDot() const
     {
-        EulerAngle<Scalar> noise = EulerAngle<Scalar>::Zero();
-        if (addNoise) {
-            // noise = {noiseAttitude_(generator_), noiseAttitude_(generator_), noiseAttitude_(generator_)};
-        }
-
-        return omegaDot_ + noise;
+        return omegaDot_;
     }
 
   private:
@@ -115,9 +94,9 @@ class Sim {
     Eigen::Matrix<Scalar, 3, 3> intertialMatrix_ = Eigen::Matrix<Scalar, 3, 3>::Zero();
 
     std::default_random_engine generator_;
-    std::normal_distribution<Scalar> noiseAttitude_;
-    std::normal_distribution<Scalar> noiseOmega_;
-    std::normal_distribution<Scalar> noiseOmegaDot_;
+    Scalar attitudeNoise_;
+    Scalar omegaNoise_;
+    Scalar omegaDotNoise_;
 };
 
 } // namespace sim

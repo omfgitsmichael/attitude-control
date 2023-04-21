@@ -15,7 +15,7 @@ constexpr double rad2Deg = 180.0 / M_PI;
 // Sim Parameters
 constexpr double tInit = 0.0;
 constexpr double simRate = 0.01;
-constexpr double tFinal = 25.0;
+constexpr double tFinal = 50.0;
 constexpr int simSteps = static_cast<int>((tFinal - tInit) / simRate);
 
 // Controller params
@@ -33,17 +33,24 @@ int main() {
     const attitude::EulerAngle<double> eulerInit{yawDegrees * deg2rad, pitchDegrees * deg2rad, rollDegrees * deg2rad};
     const attitude::BodyRate<double> omegaInit{0.0, 0.0, 0.0};
     const attitude::BodyRate<double> omegaDotInit{0.0, 0.0, 0.0};
+    Eigen::Matrix<double, 3, 3> inertialMatrix{{1.0, 0.5, 0.5}, {0.5, 2.0, 0.5}, {0.5, 0.5, 3.0}};
+
+    // RNGs
+    const bool useNoise = true;
     const double attitudeNoise = 0.1 * deg2rad;
     const double omegaNoise = 0.1 * deg2rad;
     const double omegaDotNoise = 0.1 * deg2rad;
-    const Eigen::Matrix<double, 3, 3> inertialMatrix{{1.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 3.0}};
+    std::default_random_engine generator;
+    std::normal_distribution<double> attitudeNoiseGenerator(0.0, attitudeNoise);
+    std::normal_distribution<double> omegaNoiseGenerator(0.0, omegaNoise);
+    std::normal_distribution<double> omegaDotNoiseGenerator(0.0, omegaDotNoise);
 
-    attitude::sim::Sim sim(simRate, sequence, eulerInit, attitudeNoise, omegaInit, omegaNoise, omegaDotInit, omegaDotNoise, inertialMatrix);
+    attitude::sim::Sim sim(simRate, sequence, eulerInit, omegaInit, omegaDotInit, inertialMatrix);
 
     // Controller initial conditions
     attitude::control::PassivityParams<double> params;
     params.deadzoneParams.del = 0.5;
-    params.deadzoneParams.e0 = 0.5;
+    params.deadzoneParams.e0 = 0.025;
     params.projectionParams.epsilon(0) = {0.5};
     params.projectionParams.thetaMax(0) = {3000.0};
     params.lambda = Eigen::Matrix<double, 3, 3>{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
@@ -62,7 +69,7 @@ int main() {
 
     // Initialize the data structure for the controller class
     attitude::PassivityControlData<double> data;
-    data.theta = attitude::control::Theta<double>{1.0, 1.0, 1.0};
+    data.theta = attitude::control::Theta<double>{0.0, 0.0, 0.0};
     data.quatDesired = *quatDesired;
     data.omegaDesired = omegaDesired;
     data.omegaDotDesired = omegaDotDesired;
@@ -73,8 +80,14 @@ int main() {
     for (int i = 0; i < simSteps; i++) { 
         if ( i % controllerSteps == 0) {
             // Receive measurements and do any necessary conversions
-            attitude::EulerAngle<double> ypr = sim.getAttitude(false);
-            attitude::BodyRate<double> omega = sim.getOmega(false);
+            attitude::EulerAngle<double> ypr = sim.getAttitude();
+            attitude::BodyRate<double> omega = sim.getOmega();
+
+            // Want to move this into the sim class, but not sure how
+            if (useNoise) {
+                ypr += attitude::EulerAngle<double>{attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator)};
+                omega += attitude::BodyRate<double>{omegaNoiseGenerator(generator), omegaNoiseGenerator(generator), omegaNoiseGenerator(generator)};
+            }
 
             attitude::OptionalQuaternion<double> quat = attitude::eulerToQuaternion(sequence, ypr);
             if (quat){
@@ -93,18 +106,23 @@ int main() {
             }
         }
 
+        // Continously update the parameter matrix
+        inertialMatrix += Eigen::Matrix<double, 3, 3>{{0.005, 0.0, 0.0}, {0.0, 0.005, 0.0}, {0.0, 0.0, 0.005}};
+        sim.updateInertialMatrix(inertialMatrix);
+
         // Pass control torque into the sim model
         sim.updateStates(externalForces, data.u);
 
         time += simRate;
 
         std::cout << "Sim Time: " << time << std::endl;
-        std::cout << "Sim Euler Angles: " << sim.getAttitude(false).transpose() << std::endl;
+        std::cout << "Sim Euler Angles: " << sim.getAttitude().transpose() << std::endl;
         std::cout << "Desired Euler Angles: " << eulerDes.transpose() << std::endl;
-        std::cout << "Sim Body Rates: " << sim.getOmega(false).transpose() << std::endl;
+        std::cout << "Sim Body Rates: " << sim.getOmega().transpose() << std::endl;
         std::cout << "Desired Body Rates: " << omegaDesired.transpose() << std::endl;
         std::cout << "Control Torque: " << data.u.transpose() << std::endl;
         std::cout << "Estimated Parameters: " << data.theta.transpose() << std::endl;
+        std::cout << std::endl;
         std::this_thread::sleep_for(10ms);
     }
 
