@@ -42,7 +42,7 @@ class Sim {
         }
     }
 
-    void updateStates(const Control<Scalar>& externalForces, const Control<Scalar>& control)
+    void updateStates(const Control<Scalar>& externalTorques, const Control<Scalar>& control)
     {
         // Update the attitude quaternion
         Quaternion<Scalar> quatRate = quaternionKinematics(quaternion_, omega_);
@@ -50,7 +50,7 @@ class Sim {
         quaternion_ /=  quaternion_.norm(); // Brute force normalization
 
         // Update the body rates
-        omegaDot_ = simModel(intertialMatrix_, omega_, externalForces, control);
+        omegaDot_ = simModel(intertialMatrix_, omega_, externalTorques, control);
         omega_ += omegaDot_ * dt_;
     }
 

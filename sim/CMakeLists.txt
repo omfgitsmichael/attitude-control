@@ -1,6 +1,9 @@
-set(This simulation)
+add_executable(stationaryAttitude gimbalOne.cpp)
+target_link_libraries(stationaryAttitude PRIVATE
+    attitudeEstimationControl
+)
 
-add_executable(${This} gimbalOne.cpp)
-target_link_libraries(${This} PRIVATE
+add_executable(gimbalOmegaOnly gimbalTwo.cpp)
+target_link_libraries(gimbalOmegaOnly PRIVATE
     attitudeEstimationControl
 )
