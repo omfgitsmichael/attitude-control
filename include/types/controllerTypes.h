@@ -1,5 +1,5 @@
-#ifndef PASSIVITY_CONTROLS_DATA_TYPES_H_
-#define PASSIVITY_CONTROLS_DATA_TYPES_H_
+#ifndef CONTROLLER_TYPES_H_
+#define CONTROLLER_TYPES_H_
 
 #include "types/typenames.h"
 #include "utils/controlUtils.h"
@@ -33,10 +33,8 @@ struct PassivityParams
  * Passivity-based adpative control data type structure
 **/
 template <typename Scalar>
-struct PassivityControlData {
-  public:
-    PassivityControlData() = default;
-
+struct PassivityControlData
+{
     // State data
     Quaternion<Scalar> quat = Quaternion<Scalar>::Zero();
     Quaternion<Scalar> quatDesired = Quaternion<Scalar>::Zero();
@@ -51,4 +49,4 @@ struct PassivityControlData {
 
 } // namespace attitude
 
-#endif // PASSIVITY_CONTROLS_DATA_TYPES_H_
+#endif // CONTROLLER_TYPES_H_
