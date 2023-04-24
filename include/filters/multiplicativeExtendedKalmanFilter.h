@@ -104,7 +104,9 @@ bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
     // Loop through each of the measurements one at a time for improved computational performance (Murrell's version)
     for (const auto meas : data.attitudeMeasurements) {
         const AttitudeMeasurement<Scalar> estMeas = (*rotation) * meas.attitudeRefVector;
-        const Eigen::Matrix<Scalar, 3, 3> measCross{{0.0, -estMeas(2), estMeas(1)}, {estMeas(2), 0.0, -estMeas(0)}, {-estMeas(1), estMeas(0), 0.0}};
+        const Eigen::Matrix<Scalar, 3, 3> measCross{{0.0, -estMeas(2), estMeas(1)},
+                                                    {estMeas(2), 0.0, -estMeas(0)},
+                                                    {-estMeas(1), estMeas(0), 0.0}};
 
         // Calculate the measurement sensitivity matrix
         Eigen::Matrix<Scalar, 3, 6> H = Eigen::Matrix<Scalar, 3, 6>::Zero();
