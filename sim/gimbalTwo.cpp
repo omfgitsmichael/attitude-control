@@ -3,7 +3,6 @@
 #include <thread>
 
 #include "controllers/passivityBasedAdaptiveControl.h"
-#include "filters/attitudeKalmanFilter.h"
 #include "sim.h"
 #include "utils/attitudeUtils.h"
 

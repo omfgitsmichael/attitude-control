@@ -201,6 +201,51 @@ inline OptionalRotationMatrix<Scalar> eulerRotationMatrix(const std::string& seq
 }
 
 /**
+ * Converts a rotation matrix into a quaternion. Referenced from S. W. Sheppard, "Quaternion from Rotation Matrix," Journal of
+ * Guidance and Control, Vol. 1, No. 3, pp. 223 - 224, 1978
+ * Input: rotation - The rotation matrix
+ * output: Optional attitude quaternion
+**/
+template<typename Scalar>
+inline OptionalQuaternion<Scalar> rotationToQuaternion(const RotationMatrix<Scalar>& rotation)
+{
+    Quaternion<Scalar> qTemp = Quaternion<Scalar>::Zero();
+
+    if (rotation(1, 1) > -rotation(2, 2) && rotation(0, 0) > -rotation(1, 1) && rotation(0, 0) > -rotation(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + rotation(0, 0) + rotation(1, 1) + rotation(2, 2)));
+
+        qTemp(0) = static_cast<Scalar>(0.5) * value;
+        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(1, 2) - rotation(2, 1)) / value;
+        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(2, 0) - rotation(0, 2)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(0, 1) - rotation(1, 0)) / value;
+    } else if (rotation(1, 1) < -rotation(2, 2) && rotation(0, 0) > rotation(1, 1) && rotation(0, 0) > rotation(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + rotation(0, 0) - rotation(1, 1) - rotation(2, 2)));
+
+        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(1, 2) - rotation(2, 1)) / value;
+        qTemp(1) = static_cast<Scalar>(0.5) * value;
+        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(0, 1) + rotation(1, 0)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(2, 0) + rotation(0, 2)) / value;
+    } else if (rotation(1, 1) > rotation(2, 2) && rotation(0, 0) < rotation(1, 1) && rotation(0, 0) < -rotation(2, 2)) {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - rotation(0, 0) + rotation(1, 1) - rotation(2, 2)));
+
+        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(2, 0) - rotation(0, 2)) / value;
+        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(0, 1) + rotation(1, 0)) / value;
+        qTemp(2) = static_cast<Scalar>(0.5) * value;
+        qTemp(3) = static_cast<Scalar>(0.5) * (rotation(1, 2) + rotation(2, 1)) / value;
+    } else {
+        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - rotation(0, 0) - rotation(1, 1) + rotation(2, 2)));
+
+        qTemp(0) = static_cast<Scalar>(0.5) * (rotation(0, 1) - rotation(1, 0)) / value;
+        qTemp(1) = static_cast<Scalar>(0.5) * (rotation(2, 0) + rotation(0, 2)) / value;
+        qTemp(2) = static_cast<Scalar>(0.5) * (rotation(1, 2) + rotation(2, 1)) / value;
+        qTemp(3) = static_cast<Scalar>(0.5) * value;
+    }
+
+    OptionalQuaternion<Scalar> quat = Quaternion<Scalar>{qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
+    return quat;
+}
+
+/**
  * Converts euler angles into a quaternion. Referenced from S. W. Sheppard, "Quaternion from Rotation Matrix," Journal of
  * Guidance and Control, Vol. 1, No. 3, pp. 223 - 224, 1978
  * Input: sequence - String which determines the rotation sequence
@@ -210,45 +255,12 @@ inline OptionalRotationMatrix<Scalar> eulerRotationMatrix(const std::string& seq
 template<typename Scalar>
 inline OptionalQuaternion<Scalar> eulerToQuaternion(const std::string& sequence, const EulerAngle<Scalar>& theta)
 {
-    const auto rotation = eulerRotationMatrix(sequence, theta);
+    const OptionalRotationMatrix<Scalar> rotation = eulerRotationMatrix(sequence, theta);
     if (!rotation) {
         return std::nullopt;
     }
 
-    Quaternion<Scalar> qTemp = Quaternion<Scalar>::Zero();
-
-    if ((*rotation)(1, 1) > -(*rotation)(2, 2) && (*rotation)(0, 0) > -(*rotation)(1, 1) && (*rotation)(0, 0) > -(*rotation)(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + (*rotation)(0, 0) + (*rotation)(1, 1) + (*rotation)(2, 2)));
-
-        qTemp(0) = static_cast<Scalar>(0.5) * value;
-        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) - (*rotation)(2, 1)) / value;
-        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) - (*rotation)(0, 2)) / value;
-        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) - (*rotation)(1, 0)) / value;
-    } else if ((*rotation)(1, 1) < -(*rotation)(2, 2) && (*rotation)(0, 0) > (*rotation)(1, 1) && (*rotation)(0, 0) > (*rotation)(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 + (*rotation)(0, 0) - (*rotation)(1, 1) - (*rotation)(2, 2)));
-
-        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) - (*rotation)(2, 1)) / value;
-        qTemp(1) = static_cast<Scalar>(0.5) * value;
-        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) + (*rotation)(1, 0)) / value;
-        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) + (*rotation)(0, 2)) / value;
-    } else if ((*rotation)(1, 1) > (*rotation)(2, 2) && (*rotation)(0, 0) < (*rotation)(1, 1) && (*rotation)(0, 0) < -(*rotation)(2, 2)) {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - (*rotation)(0, 0) + (*rotation)(1, 1) - (*rotation)(2, 2)));
-
-        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) - (*rotation)(0, 2)) / value;
-        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) + (*rotation)(1, 0)) / value;
-        qTemp(2) = static_cast<Scalar>(0.5) * value;
-        qTemp(3) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) + (*rotation)(2, 1)) / value;
-    } else {
-        const Scalar value = static_cast<Scalar>(std::sqrt(1.0 - (*rotation)(0, 0) - (*rotation)(1, 1) + (*rotation)(2, 2)));
-
-        qTemp(0) = static_cast<Scalar>(0.5) * ((*rotation)(0, 1) - (*rotation)(1, 0)) / value;
-        qTemp(1) = static_cast<Scalar>(0.5) * ((*rotation)(2, 0) + (*rotation)(0, 2)) / value;
-        qTemp(2) = static_cast<Scalar>(0.5) * ((*rotation)(1, 2) + (*rotation)(2, 1)) / value;
-        qTemp(3) = static_cast<Scalar>(0.5) * value;
-    }
-
-    OptionalQuaternion<Scalar> quat = Quaternion<Scalar>{qTemp(1), qTemp(2), qTemp(3), qTemp(0)};
-    return quat;
+    return rotationToQuaternion(*rotation);
 }
 
 /**
