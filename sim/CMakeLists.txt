@@ -1,9 +1,9 @@
-add_executable(stationaryAttitude gimbalOne.cpp)
-target_link_libraries(stationaryAttitude PRIVATE
+add_executable(gimbalSim gimbal.cpp)
+target_link_libraries(gimbalSim PRIVATE
     attitudeEstimationControl
 )
 
-add_executable(gimbalOmegaOnly gimbalTwo.cpp)
-target_link_libraries(gimbalOmegaOnly PRIVATE
+add_executable(satellite satellite.cpp)
+target_link_libraries(satellite PRIVATE
     attitudeEstimationControl
 )

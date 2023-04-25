@@ -3,6 +3,7 @@
 
 #include "quaternions/quaternionMath.h"
 #include "types/filterTypes.h"
+#include "utils/attitudeUtils.h"
 
 namespace attitude {
 
@@ -17,7 +18,7 @@ namespace mekf {
 * Output:
 **/
 template <typename Scalar>
-void multiplicativeExtendedKalmanInitialize()
+inline void multiplicativeExtendedKalmanInitialize()
 {
 
 }
@@ -29,16 +30,19 @@ void multiplicativeExtendedKalmanInitialize()
 * Input: data - MEKF data structure
 **/
 template <typename Scalar>
-void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
+inline bool multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
 {
+    // Propagate the angular velocity
+    data.omega = data.omegaMeas - data.omegaBias;
+    if (data.omega.norm() == static_cast<Scalar>(0.0)) {
+        return false;
+    }
+
     const Scalar dt = params.dt;
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
     const Scalar w = data.omega.norm();
     const Scalar w2 = w * w;
     const Scalar w3 = w * w * w;
-
-    // Propagate the angular velocity
-    data.omega = data.omegaMeas - data.omegaBias;
 
     // Discrete time quaternion propagation
     const Scalar scalarTerm = static_cast<Scalar>(std::cos(0.5 * w * dt));
@@ -51,7 +55,7 @@ void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEK
     omega.block(0, 0, 3, 3) = scalarTerm * identity - phiCross;
     omega.block(0, 3, 3, 1) = psi;
     omega.block(3, 0, 1, 3) = -psi.transpose();
-    omega.block(3, 3, 1, 1) = scalarTerm;
+    omega(3, 3) = scalarTerm;
 
     data.quaternion = omega * data.quaternion;
 
@@ -81,7 +85,9 @@ void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEK
     process.block(3, 0, 3, 3) = crossTerms;
     process.block(3, 3, 3, 3) = (sigmaU2 * dt) * identity;
 
-    data.P = phi * data.P * phi.tranpose() + gamma * process * gamma.tranpose();
+    data.P = phi * data.P * phi.transpose() + gamma * process * gamma.transpose();
+
+    return true;
 }
 
 /**
@@ -92,7 +98,7 @@ void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEK
 * Output: Boolean if the Kalman filter passed or failed
 **/
 template <typename Scalar>
-bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
+inline bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 {
     OptionalRotationMatrix<Scalar> rotation = quaternionRotationMatrix(data.quaternion);
     if (!rotation) {
@@ -103,7 +109,7 @@ bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 
     // Loop through each of the measurements one at a time for improved computational performance (Murrell's version)
     for (const auto meas : data.attitudeMeasurements) {
-        const AttitudeMeasurement<Scalar> estMeas = (*rotation) * meas.attitudeRefVector;
+        const AttitudeVector<Scalar> estMeas = (*rotation) * meas.attitudeRefVector;
         const Eigen::Matrix<Scalar, 3, 3> measCross{{0.0, -estMeas(2), estMeas(1)},
                                                     {estMeas(2), 0.0, -estMeas(0)},
                                                     {-estMeas(1), estMeas(0), 0.0}};
@@ -117,7 +123,7 @@ bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
         Eigen::Matrix<Scalar, 6, 3> K = data.P * H.transpose() * S.inverse();
 
         // Update states and costates
-        const AttitudeMeasurement<Scalar> residual = meas.attitudeMeasVector - estMeas;
+        const AttitudeVector<Scalar> residual = meas.attitudeMeasVector - estMeas;
         data.deltaX += K * (residual - H * data.deltaX);
         data.P = (Eigen::Matrix<Scalar, 6, 6>::Identity() - K * H) * data.P;
     }
@@ -143,13 +149,15 @@ bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 * Output: Boolean if the Kalman filter passed or failed
 **/
 template <typename Scalar>
-bool multiplicativeExtendedKalmanFilter(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
+inline bool multiplicativeExtendedKalmanFilter(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
 {
     // Propagate the states to 'current time'
-    multiplicativeExtendedKalmanPropagate(params, data);
+    bool result = multiplicativeExtendedKalmanPropagate(params, data);
 
     // Update the states based off the current measurements
-    bool result = multiplicativeExtendedKalmanUpdate(data);
+    if (result) {
+        result = multiplicativeExtendedKalmanUpdate(data);
+    }
 
     return result;
 }

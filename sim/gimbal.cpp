@@ -45,6 +45,7 @@ int main() {
     std::normal_distribution<double> omegaNoiseGenerator(0.0, omegaNoise);
     std::normal_distribution<double> omegaDotNoiseGenerator(0.0, omegaDotNoise);
 
+    // Construct the sim class
     attitude::sim::Sim sim(simRate, sequence, eulerInit, omegaInit, omegaDotInit, inertialMatrix);
 
     // Controller initial conditions

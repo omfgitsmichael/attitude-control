@@ -19,10 +19,10 @@ namespace control {
 * Output: Optional parameter estimate rate
 **/
 template <typename Scalar>
-std::optional<Eigen::Vector<Scalar, 3>> passivityAdaptiveLaws(const PassivityParams<Scalar>& params,
-                                                              const Eigen::Vector<Scalar, 3>& s,
-                                                              const Eigen::Matrix<Scalar, 3, 3>& regressor,
-                                                              const Theta<Scalar> theta)
+inline std::optional<Eigen::Vector<Scalar, 3>> passivityAdaptiveLaws(const PassivityParams<Scalar>& params,
+                                                                     const Eigen::Vector<Scalar, 3>& s,
+                                                                     const Eigen::Matrix<Scalar, 3, 3>& regressor,
+                                                                     const Theta<Scalar> theta)
 {
     // Return null if failed to produce
     std::optional<Scalar> deadzone = deadzoneOperator(params.deadzoneParams, s);
@@ -45,7 +45,7 @@ std::optional<Eigen::Vector<Scalar, 3>> passivityAdaptiveLaws(const PassivityPar
 * Output: Result boolean if passed or failed
 **/
 template <typename Scalar>
-bool passivityBasedAdaptiveControl(const PassivityParams<Scalar>& params, PassivityControlData<Scalar>& data)
+inline bool passivityBasedAdaptiveControl(const PassivityParams<Scalar>& params, PassivityControlData<Scalar>& data)
 {
     // Calculate the errors
     Quaternion<Scalar> quatError = quaternionError(data.quat, data.quatDesired);
