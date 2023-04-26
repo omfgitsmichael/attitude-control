@@ -30,13 +30,10 @@ inline void multiplicativeExtendedKalmanInitialize()
 * Input: data - MEKF data structure
 **/
 template <typename Scalar>
-inline bool multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
+inline void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
 {
-    // Propagate the angular velocity
+    // First propagate the angular velocity
     data.omega = data.omegaMeas - data.omegaBias;
-    if (data.omega.norm() == static_cast<Scalar>(0.0)) {
-        return false;
-    }
 
     const Scalar dt = params.dt;
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
@@ -44,50 +41,48 @@ inline bool multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& para
     const Scalar w2 = w * w;
     const Scalar w3 = w * w * w;
 
-    // Discrete time quaternion propagation
-    const Scalar scalarTerm = static_cast<Scalar>(std::cos(0.5 * w * dt));
-    const BodyRate<Scalar> psi = (static_cast<Scalar>(std::sin(0.5 * w * dt)) / w) * data.omega;
-    const Eigen::Matrix<Scalar, 3, 3> phiCross{{0.0, -psi(2), psi(1)},
-                                               {psi(2), 0.0, -psi(0)},
-                                               {-psi(1), psi(0), 0.0}};
-
-    Eigen::Matrix<Scalar, 4, 4> omega = Eigen::Matrix<Scalar, 4, 4>::Zero();
-    omega.block(0, 0, 3, 3) = scalarTerm * identity - phiCross;
-    omega.block(0, 3, 3, 1) = psi;
-    omega.block(3, 0, 1, 3) = -psi.transpose();
-    omega(3, 3) = scalarTerm;
-
-    data.quaternion = omega * data.quaternion;
-
-    // Discrete time covariance propagation
-    const Scalar sigmaV2 = params.omegaProcessNoise * params.omegaProcessNoise;
-    const Scalar sigmaU2 = params.biasProcessNoise * params.biasProcessNoise;
-    const Eigen::Matrix<Scalar, 3, 3> omegaCross{{0.0, -data.omega(2), data.omega(1)},
-                                                 {data.omega(2), 0.0, -data.omega(0)},
-                                                 {-data.omega(1), data.omega(0), 0.0}};
-    const Eigen::Matrix<Scalar, 3, 3> omegaCross2 = omegaCross * omegaCross;
-
-    Eigen::Matrix<Scalar, 6, 6> phi = Eigen::Matrix<Scalar, 6, 6>::Zero();
-    phi.block(0, 0, 3, 3) = identity - omegaCross * (static_cast<Scalar>(std::sin(w * dt)) / w)
-        + omegaCross2 * ((static_cast<Scalar>(1.0 - std::cos(w * dt))) / w2);
-    phi.block(0, 3, 3, 3) = omegaCross * ((static_cast<Scalar>(1.0 - std::cos(w * dt))) / w2)
-        - identity * dt - omegaCross2 * ((w * dt - static_cast<Scalar>(std::sin(w * dt))) / w3);
-    phi.block(3, 3, 3, 3) = identity;
-
-    Eigen::Matrix<Scalar, 6, 6> gamma = Eigen::Matrix<Scalar, 6, 6>::Zero();
+    // Discrete time propagation
+    Eigen::Matrix<Scalar, 4, 4> omega = Eigen::Matrix<Scalar, 4, 4>::Identity();
+    Eigen::Matrix<Scalar, 6, 6> phi = Eigen::Matrix<Scalar, 6, 6>::Identity();
+    phi.block(0, 3, 3, 3) = -identity * dt;
+    Eigen::Matrix<Scalar, 6, 6> gamma = Eigen::Matrix<Scalar, 6, 6>::Identity();
     gamma.block(0, 0, 3, 3) = -identity;
-    gamma.block(3, 3, 3, 3) = identity;
 
     Eigen::Matrix<Scalar, 6, 6> process = Eigen::Matrix<Scalar, 6, 6>::Zero();
+    const Scalar sigmaV2 = params.omegaProcessNoise * params.omegaProcessNoise;
+    const Scalar sigmaU2 = params.biasProcessNoise * params.biasProcessNoise;
     const Eigen::Matrix<Scalar, 3, 3> crossTerms = (static_cast<Scalar>(0.5) * sigmaU2 * dt * dt) * identity;
     process.block(0, 0, 3, 3) = (sigmaV2 * dt + static_cast<Scalar>(1.0 / 3.0) * sigmaU2 * dt * dt * dt) * identity;
     process.block(0, 3, 3, 3) = crossTerms;
     process.block(3, 0, 3, 3) = crossTerms;
     process.block(3, 3, 3, 3) = (sigmaU2 * dt) * identity;
+    
+    if (w != static_cast<Scalar>(0.0)){
+        const Scalar scalarTerm = static_cast<Scalar>(std::cos(0.5 * w * dt));
+        const BodyRate<Scalar> psi = (static_cast<Scalar>(std::sin(0.5 * w * dt)) / w) * data.omega;
+        const Eigen::Matrix<Scalar, 3, 3> phiCross{{0.0, -psi(2), psi(1)},
+                                                {psi(2), 0.0, -psi(0)},
+                                                {-psi(1), psi(0), 0.0}};
+        
+        omega.block(0, 0, 3, 3) = scalarTerm * identity - phiCross;
+        omega.block(0, 3, 3, 1) = psi;
+        omega.block(3, 0, 1, 3) = -psi.transpose();
+        omega(3, 3) = scalarTerm;
 
+        const Eigen::Matrix<Scalar, 3, 3> omegaCross{{0.0, -data.omega(2), data.omega(1)},
+                                                        {data.omega(2), 0.0, -data.omega(0)},
+                                                        {-data.omega(1), data.omega(0), 0.0}};
+        const Eigen::Matrix<Scalar, 3, 3> omegaCross2 = omegaCross * omegaCross;
+
+        phi.block(0, 0, 3, 3) = identity - omegaCross * (static_cast<Scalar>(std::sin(w * dt)) / w)
+            + omegaCross2 * ((static_cast<Scalar>(1.0 - std::cos(w * dt))) / w2);
+        phi.block(0, 3, 3, 3) = omegaCross * ((static_cast<Scalar>(1.0 - std::cos(w * dt))) / w2)
+            - identity * dt - omegaCross2 * ((w * dt - static_cast<Scalar>(std::sin(w * dt))) / w3);
+        phi.block(3, 3, 3, 3) = identity;
+    }
+
+    data.quaternion = omega * data.quaternion;
     data.P = phi * data.P * phi.transpose() + gamma * process * gamma.transpose();
-
-    return true;
 }
 
 /**
@@ -152,12 +147,10 @@ template <typename Scalar>
 inline bool multiplicativeExtendedKalmanFilter(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
 {
     // Propagate the states to 'current time'
-    bool result = multiplicativeExtendedKalmanPropagate(params, data);
+    multiplicativeExtendedKalmanPropagate(params, data);
 
     // Update the states based off the current measurements
-    if (result) {
-        result = multiplicativeExtendedKalmanUpdate(data);
-    }
+    const bool result = multiplicativeExtendedKalmanUpdate(data);
 
     return result;
 }
