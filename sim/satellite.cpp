@@ -131,12 +131,14 @@ int main() {
             meas1.attitudeMeasVector = attitudeMeas1;
             meas1.attitudeRefVector = inertialRef1;
             meas1.sigma = intertialRef1Sigma;
+            meas1.valid = true;
             filterData.attitudeMeasurements.push_back(meas1);
 
             attitude::filter::AttitudeMeasurement<double> meas2;
             meas2.attitudeMeasVector = attitudeMeas2;
             meas2.attitudeRefVector = inertialRef2;
             meas2.sigma = intertialRef2Sigma;
+            meas2.valid = true;
             filterData.attitudeMeasurements.push_back(meas2);
 
             filterData.omegaMeas = omega;

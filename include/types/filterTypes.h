@@ -32,6 +32,7 @@ using Covariance = Eigen::Matrix<Scalar, N, N>;
 template <typename Scalar>
 struct AttitudeMeasurement
 {
+    bool valid = false;
     Scalar sigma = 0.0; /// Attitude measurement measurement noise standard deviation
     AttitudeVector<Scalar> attitudeRefVector = AttitudeVector<Scalar>::Zero();
     AttitudeVector<Scalar> attitudeMeasVector = AttitudeVector<Scalar>::Zero();
@@ -81,8 +82,12 @@ template <typename Scalar>
 struct AHRSParams
 {
     Scalar dt = 0.0;
-    Scalar omegaProcessNoise = 0.0; /// Angular rate process noise standard deviation
-    Scalar biasProcessNoise = 0.0;  /// Angular rate bias process noise standard deviation
+    Scalar omegaProcessNoise = 0.0;        /// Angular rate process noise standard deviation
+    Scalar biasProcessNoise = 0.0;         /// Angular rate bias process noise standard deviation
+    Scalar accelNoise = 0.0;               /// Accelerometer measurement noise standard deviation
+    Scalar linearAccelNoise = 0.0;         /// Linear acceleration force process noise standard deviation
+    Scalar magneticNoise = 0.0;            /// Magnetometer measurement noise standard deviation
+    Scalar magneticVectorNoise = 0.0;      /// Magnetic vector process noise standard deviation
 };
 
 /**
@@ -100,7 +105,13 @@ struct AHRSData
     Quaternion<Scalar> quaternion = Quaternion<Scalar>::Zero();
     BodyRate<Scalar> omega = BodyRate<Scalar>::Zero();
     BodyRate<Scalar> omegaBias = BodyRate<Scalar>::Zero();
+    AttitudeVector<Scalar> linearAccelForces = AttitudeVector<Scalar>::Zero();
+    AttitudeVector<Scalar> magneticVector = AttitudeVector<Scalar>::Zero();
     DeltaStates<Scalar, 12> deltaX = DeltaStates<Scalar, 6>::Zero();
+
+    // Estimated measurements
+    AttitudeVector<Scalar> gravityEstimated = AttitudeVector<Scalar>::Zero();
+    AttitudeVector<Scalar> magneticEstimated = AttitudeVector<Scalar>::Zero();
 
     // Covariance matrix
     Covariance<Scalar, 12> P = Covariance<Scalar, 12>::Zero();

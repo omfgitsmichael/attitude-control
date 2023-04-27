@@ -20,7 +20,6 @@ namespace mekf {
 template <typename Scalar>
 inline void multiplicativeExtendedKalmanInitialize()
 {
-
 }
 
 /**
@@ -104,6 +103,10 @@ inline bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 
     // Loop through each of the measurements one at a time for improved computational performance (Murrell's version)
     for (const auto meas : data.attitudeMeasurements) {
+        if (!meas.valid) {
+            continue;
+        }
+
         const AttitudeVector<Scalar> estMeas = (*rotation) * meas.attitudeRefVector;
         const Eigen::Matrix<Scalar, 3, 3> measCross{{0.0, -estMeas(2), estMeas(1)},
                                                     {estMeas(2), 0.0, -estMeas(0)},
