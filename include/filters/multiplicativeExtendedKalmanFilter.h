@@ -94,7 +94,7 @@ inline void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& para
 template <typename Scalar>
 inline bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 {
-    OptionalRotationMatrix<Scalar> rotation = quaternionRotationMatrix(data.quaternion);
+    const OptionalRotationMatrix<Scalar> rotation = quaternionRotationMatrix(data.quaternion);
     if (!rotation) {
         return false;
     }
@@ -128,6 +128,7 @@ inline bool multiplicativeExtendedKalmanUpdate(MEKFData<Scalar>& data)
 
     // Update the primary states
     data.omegaBias += data.deltaX.tail(3);
+    data.omega = data.omegaMeas - data.omegaBias;
 
     const Eigen::Matrix<Scalar, 4, 3> E{{data.quaternion(3), -data.quaternion(2), data.quaternion(1)},
                                         {data.quaternion(2), data.quaternion(3), -data.quaternion(0)},
