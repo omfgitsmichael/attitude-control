@@ -31,7 +31,7 @@ inline void multiplicativeExtendedKalmanInitialize()
 template <typename Scalar>
 inline void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& params, MEKFData<Scalar>& data)
 {
-    // First propagate the angular velocity
+    // First "propagate" the angular velocity
     data.omega = data.omegaMeas - data.omegaBias;
 
     const Scalar dt = params.dt;
@@ -47,7 +47,7 @@ inline void multiplicativeExtendedKalmanPropagate(const MEKFParams<Scalar>& para
     Eigen::Matrix<Scalar, 6, 6> gamma = Eigen::Matrix<Scalar, 6, 6>::Identity();
     gamma.block(0, 0, 3, 3) = -identity;
 
-    Eigen::Matrix<Scalar, 6, 6> process = Eigen::Matrix<Scalar, 6, 6>::Zero();
+    Covariance<Scalar, 6> process = Covariance<Scalar, 6>::Zero();
     const Scalar sigmaV2 = params.omegaProcessNoise * params.omegaProcessNoise;
     const Scalar sigmaU2 = params.biasProcessNoise * params.biasProcessNoise;
     const Eigen::Matrix<Scalar, 3, 3> crossTerms = (static_cast<Scalar>(0.5) * sigmaU2 * dt * dt) * identity;

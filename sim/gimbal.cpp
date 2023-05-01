@@ -3,6 +3,7 @@
 #include <thread>
 
 #include "controllers/passivityBasedAdaptiveControl.h"
+#include "filters/AHRSKalmanFilter.h"
 #include "sim.h"
 #include "utils/attitudeUtils.h"
 
@@ -17,6 +18,10 @@ constexpr double tInit = 0.0;
 constexpr double simRate = 0.01;
 constexpr double tFinal = 50.0;
 constexpr int simSteps = static_cast<int>((tFinal - tInit) / simRate);
+
+// Filter params
+constexpr double filterRate = simRate;
+constexpr int filterSteps = static_cast<int>((filterRate) / simRate);
 
 // Controller params
 constexpr double controllerRate = 0.1;
@@ -47,6 +52,26 @@ int main() {
 
     // Construct the sim class
     attitude::sim::Sim sim(simRate, sequence, eulerInit, omegaInit, omegaDotInit, inertialMatrix);
+
+    // Filter initial conditions and params
+    attitude::filter::ahrs::AHRSParams<double> filterParams;
+    filterParams.gravity = 9.81; /// m/s/s
+    filterParams.geomagneticFieldStrength = 50.0; /// micro tesla
+    filterParams.dt = filterRate;
+    filterParams.biasProcessNoise = 0.01; 
+    filterParams.omegaProcessNoise = 0.01;
+    filterParams.linearAccelNoise = 0.01;
+    filterParams.magDisturbanceNoise = 0.5;
+
+    attitude::filter::ahrs::AHRSData<double> filterData; /// Leave everything initialized to zero at the moment
+    filterData.quaternion = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
+    filterData.P = 1e3 * attitude::filter::Covariance<double, 12>::Identity(); /// Set covariance as if we have no idea what our inital estimate is
+    const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
+    const double intertialRef1Sigma = 0.025;
+
+    const double inclinationAngle = 60.0 * deg2rad; /// True inclination angle of where the gimbal is on the globe
+    const attitude::filter::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
+    const double intertialRef2Sigma = 0.1;
 
     // Controller initial conditions
     attitude::control::PassivityParams<double> params;

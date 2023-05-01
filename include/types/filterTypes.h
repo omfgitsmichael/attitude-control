@@ -86,6 +86,10 @@ struct AHRSParams
     Scalar biasProcessNoise = 0.0;    /// Angular rate bias process noise standard deviation
     Scalar linearAccelNoise = 0.0;    /// Linear acceleration force process noise standard deviation
     Scalar magDisturbanceNoise = 0.0; /// Magnetic disturbance process noise standard deviation
+
+    // Calibrated parameters
+    Scalar gravity = 9.81;                  /// Defaulted to 9.81 m/s^2
+    Scalar geomagneticFieldStrength = 50.0; /// Defaulted to 50 microTesla
 };
 
 /**
@@ -106,10 +110,13 @@ struct AHRSData
     AttitudeVector<Scalar> linearAccelForces = AttitudeVector<Scalar>::Zero();
     AttitudeVector<Scalar> magneticDisturbances = AttitudeVector<Scalar>::Zero();
     AttitudeVector<Scalar> magneticVector = AttitudeVector<Scalar>::Zero();
-    DeltaStates<Scalar, 12> deltaX = DeltaStates<Scalar, 6>::Zero();
+    DeltaStates<Scalar, 12> deltaX = DeltaStates<Scalar, 12>::Zero();
 
     // Covariance matrix
     Covariance<Scalar, 12> P = Covariance<Scalar, 12>::Zero();
+
+    // Initialization boolean
+    bool initialize = true;
 };
 
 } // namespace ahrs

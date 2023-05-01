@@ -10,10 +10,6 @@ namespace filter {
 
 namespace ahrs {
 
-// Can have these as params which can be calculateed via calibration
-static constexpr double GRAVITY = 9.81; /// m/s^2
-static constexpr double GEOMAGNETIC_FIELD_STRENGTH = 0.5; /// gauss
-
 /**
 * Initializes the Kalman Filter state estimates using accelerometer and magnetometer measurements forming an E-compass. Referenced
 * from Mathworks: https://www.mathworks.com/help/fusion/ref/ahrsfilter-system-object.html#mw_a42526cc-0fa3-40b9-936e-343972701689
@@ -23,15 +19,12 @@ static constexpr double GEOMAGNETIC_FIELD_STRENGTH = 0.5; /// gauss
 * Output: Boolean if it passed or failed
 **/
 template <typename Scalar>
-inline bool AHRSKalmanInitialize(const AttitudeMeasurement<Scalar>& accelerometer,
-                                 const AttitudeMeasurement<Scalar>& magnetometer,
-                                 const BodyRate<Scalar>& omega,
-                                 AHRSData<Scalar>& data)
+inline bool AHRSKalmanInitialize(AHRSData<Scalar>& data)
 {
-    const Eigen::Vector<Scalar, 3> cross1 = accelerometer.attitudeMeasVector.cross(magnetometer.attitudeMeasVector);
-    const Eigen::Vector<Scalar, 3> cross2 = cross1.cross(accelerometer.attitudeMeasVector);
+    const Eigen::Vector<Scalar, 3> cross1 = data.accelerometerMeas.attitudeMeasVector.cross(data.magnetometerMeas.attitudeMeasVector);
+    const Eigen::Vector<Scalar, 3> cross2 = cross1.cross(data.accelerometerMeas.attitudeMeasVector);
 
-    RotationMatrix<Scalar> rotation{cross2, cross1, accelerometer.attitudeMeasVector}; // Not sure if this is populating the matrix as I intend it to
+    RotationMatrix<Scalar> rotation{cross2, cross1, data.accelerometerMeas.attitudeMeasVector}; // Not sure if this is populating the matrix as I intend it to
     rotation.col(0) /= rotation.col(0).norm();
     rotation.col(1) /= rotation.col(1).norm();
     rotation.col(2) /= rotation.col(2).norm();
@@ -42,9 +35,9 @@ inline bool AHRSKalmanInitialize(const AttitudeMeasurement<Scalar>& acceleromete
         return false;
     }
 
-    data.omega = omega;
+    data.omega = data.omegaMeas;
     data.quaternion = *quat;
-    data.magneticVector = rotation.transpose() * magnetometer.attitudeMeasVector;
+    data.magneticVector = rotation.transpose() * data.magnetometerMeas.attitudeMeasVector;
     return true;
 }
 
@@ -59,7 +52,7 @@ inline bool AHRSKalmanInitialize(const AttitudeMeasurement<Scalar>& acceleromete
 template <typename Scalar>
 inline void AHRSKalmanPropagate(const AHRSParams<Scalar>& params, AHRSData<Scalar>& data)
 {
-    // First propagate the angular velocity
+    // First "propagate" the angular velocity
     data.omega = data.omegaMeas - data.omegaBias;
 
     const Scalar dt = params.dt;
@@ -82,9 +75,29 @@ inline void AHRSKalmanPropagate(const AHRSParams<Scalar>& params, AHRSData<Scala
         omega(3, 3) = scalarTerm;
     }
 
-    // Propagate the covariance matrix
+    // Propagate the covariance matrix -- pretty sure this can be re-written as FPF' + Q
+    const Scalar gyroNoise = params.omegaProcessNoise * params.omegaProcessNoise;
+    const Eigen::Matrix<Scalar, 3, 3> QGyroNoise = gyroNoise * identity;
+
+    const Scalar gyroBiasProcess = params.biasProcessNoise * params.biasProcessNoise;
+    const Eigen::Matrix<Scalar, 3, 3> QGyroBiasProcess = gyroBiasProcess * identity;
+
+    const Scalar linearAccelProcess = params.linearAccelNoise * params.linearAccelNoise;
+    const Eigen::Matrix<Scalar, 3, 3> QLinearAccelProcess = linearAccelProcess * identity;
+
+    const Scalar magneticDisturbanceProcess = params.magDisturbanceNoise * params.magDisturbanceNoise;
+    const Eigen::Matrix<Scalar, 3, 3> QMagneticDisturbanceProcess = magneticDisturbanceProcess * identity;
+
+    Covariance<Scalar, 12> process = Covariance<Scalar, 12>::Zero();
+    process.block(0, 0, 3, 3) = data.P.block(0, 0, 3, 3) + dt * dt * (data.P.block(3, 3, 3, 3) + QGyroNoise + QGyroBiasProcess);
+    process.block(0, 3, 3, 3) = -dt * (data.P.block(0, 3, 3, 3) + QGyroBiasProcess);
+    process.block(3, 0, 3, 3) = process.block(0, 3, 3, 3);
+    process.block(3, 3, 3, 3) = process.block(3, 3, 3, 3) + QGyroBiasProcess;
+    process.block(6, 6, 3, 3) = static_cast<Scalar>(0.25) * process.block(6, 6, 3, 3) + linearAccelProcess;
+    process.block(9, 9, 3, 3) = static_cast<Scalar>(0.25) * process.block(9, 9, 3, 3) + magneticDisturbanceProcess;
 
     data.quaternion = omega * data.quaternion;
+    data.P = process;
 }
 
 /**
@@ -103,7 +116,7 @@ inline void  accelerometerUpdate(const AHRSParams<Scalar>& params,
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
     // Measurement and error model
-    const AttitudeVector<Scalar> estMeas = GRAVITY * rotation.col(2);
+    const AttitudeVector<Scalar> estMeas = params.gravity * rotation.col(2);
     const AttitudeVector<Scalar> meas = data.accelerometerMeas.attitudeMeasVector + data.linearAccelForces;
     const AttitudeVector<Scalar> residual = meas - estMeas;
 
@@ -142,11 +155,6 @@ inline bool magnetometerUpdate(const AHRSParams<Scalar>& params,
                                const RotationMatrix<Scalar>& rotation,
                                AHRSData<Scalar>& data)
 {
-    const OptionalRotationMatrix rotation = quaternionRotationMatrix(data.quaternion);
-    if (!rotation){
-        return false;
-    }
-
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
     // Measurement and error model
@@ -178,7 +186,6 @@ inline bool magnetometerUpdate(const AHRSParams<Scalar>& params,
     return true;
 }
 
-
 /**
 * Update the estimated states for the attitude and heading reference systems (AHRS) extended Kalman Filter (MEKF) algorithm -- variant
 * of MEKF. Referenced from Mathworks:
@@ -190,7 +197,7 @@ inline bool magnetometerUpdate(const AHRSParams<Scalar>& params,
 template <typename Scalar>
 inline bool AHRSKalmanUpdate(const AHRSParams<Scalar>& params, AHRSData<Scalar>& data)
 {
-    const OptionalRotationMatrix rotation = quaternionRotationMatrix(data.quaternion);
+    const OptionalRotationMatrix<Scalar> rotation = quaternionRotationMatrix(data.quaternion);
     if (!rotation){
         return false;
     }
@@ -224,7 +231,7 @@ inline bool AHRSKalmanUpdate(const AHRSParams<Scalar>& params, AHRSData<Scalar>&
         const AttitudeVector<Scalar> disturbanceNED = (*rotation).transpose() * data.magneticDisturbances;
         const AttitudeVector<Scalar> magneticNED = data.magneticVector - disturbanceNED;
         const Scalar inclination = static_cast<Scalar>(std::atan2(magneticNED(2), magneticNED(0)));
-        data.magneticVector = GEOMAGNETIC_FIELD_STRENGTH *  AttitudeVector<Scalar>{std::cos(inclination), 0.0, std::sin(inclination)};
+        data.magneticVector = params.geomagneticFieldStrength *  AttitudeVector<Scalar>{std::cos(inclination), 0.0, std::sin(inclination)};
     }
 
     return true;
@@ -237,9 +244,26 @@ inline bool AHRSKalmanUpdate(const AHRSParams<Scalar>& params, AHRSData<Scalar>&
 * Output:
 **/
 template <typename Scalar>
-inline void AHRSKalmanFilter()
+inline bool AHRSKalmanFilter(const AHRSParams<Scalar>& params, AHRSData<Scalar>& data)
 {
+    bool result = false;
+    if (data.initialize) {
+        result = AHRSKalmanInitialize(data);
 
+        if (!result) {
+            return result;
+        }
+
+        data.initialize = false;
+    }
+
+    // Propagate the states to 'current time'
+    AHRSKalmanPropagate(params, data);
+
+    // Update the states based off the current measurements
+    result = AHRSKalmanUpdate(data);
+
+    return result;
 }
 
 } // namespace ahrs
