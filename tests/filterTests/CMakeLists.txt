@@ -1,4 +1,4 @@
-set(This controlUtilsTests)
+set(This filterTests)
 
 set(Sources
     filterTests.cpp
