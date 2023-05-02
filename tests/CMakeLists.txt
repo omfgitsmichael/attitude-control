@@ -1,3 +1,4 @@
 add_subdirectory(attitudeUtilsTest)
 add_subdirectory(controlUtilsTest)
 add_subdirectory(controllerTests)
+add_subdirectory(filterTests)

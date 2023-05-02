@@ -3,6 +3,7 @@
 
 #include "quaternions/quaternionMath.h"
 #include "types/filterTypes.h"
+#include "utils/attitudeUtils.h"
 
 namespace attitude {
 
@@ -24,10 +25,10 @@ inline bool AHRSKalmanInitialize(AHRSData<Scalar>& data)
     const Eigen::Vector<Scalar, 3> cross1 = data.accelerometerMeas.attitudeMeasVector.cross(data.magnetometerMeas.attitudeMeasVector);
     const Eigen::Vector<Scalar, 3> cross2 = cross1.cross(data.accelerometerMeas.attitudeMeasVector);
 
-    RotationMatrix<Scalar> rotation{cross2, cross1, data.accelerometerMeas.attitudeMeasVector}; // Not sure if this is populating the matrix as I intend it to
-    rotation.col(0) /= rotation.col(0).norm();
-    rotation.col(1) /= rotation.col(1).norm();
-    rotation.col(2) /= rotation.col(2).norm();
+    RotationMatrix<Scalar> rotation = RotationMatrix<Scalar>::Zero();
+    rotation.col(0) = cross2 / cross2.norm();
+    rotation.col(1) = cross1 / cross1.norm();
+    rotation.col(2) = data.accelerometerMeas.attitudeMeasVector / data.accelerometerMeas.attitudeMeasVector.norm();
 
     OptionalQuaternion<Scalar> quat = rotationToQuaternion(rotation);
 
@@ -92,9 +93,9 @@ inline void AHRSKalmanPropagate(const AHRSParams<Scalar>& params, AHRSData<Scala
     process.block(0, 0, 3, 3) = data.P.block(0, 0, 3, 3) + dt * dt * (data.P.block(3, 3, 3, 3) + QGyroNoise + QGyroBiasProcess);
     process.block(0, 3, 3, 3) = -dt * (data.P.block(0, 3, 3, 3) + QGyroBiasProcess);
     process.block(3, 0, 3, 3) = process.block(0, 3, 3, 3);
-    process.block(3, 3, 3, 3) = process.block(3, 3, 3, 3) + QGyroBiasProcess;
-    process.block(6, 6, 3, 3) = static_cast<Scalar>(0.25) * process.block(6, 6, 3, 3) + linearAccelProcess;
-    process.block(9, 9, 3, 3) = static_cast<Scalar>(0.25) * process.block(9, 9, 3, 3) + magneticDisturbanceProcess;
+    process.block(3, 3, 3, 3) = data.P.block(3, 3, 3, 3) + QGyroBiasProcess;
+    process.block(6, 6, 3, 3) = static_cast<Scalar>(0.25) * data.P.block(6, 6, 3, 3) + QLinearAccelProcess;
+    process.block(9, 9, 3, 3) = static_cast<Scalar>(0.25) * data.P.block(9, 9, 3, 3) + QMagneticDisturbanceProcess;
 
     data.quaternion = omega * data.quaternion;
     data.P = process;
@@ -116,8 +117,8 @@ inline void  accelerometerUpdate(const AHRSParams<Scalar>& params,
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
     // Measurement and error model
-    const AttitudeVector<Scalar> estMeas = params.gravity * rotation.col(2);
-    const AttitudeVector<Scalar> meas = data.accelerometerMeas.attitudeMeasVector + data.linearAccelForces;
+    const AttitudeVector<Scalar> estMeas = params.gravity * rotation.col(2) + data.linearAccelForces;
+    const AttitudeVector<Scalar> meas = data.accelerometerMeas.attitudeMeasVector;
     const AttitudeVector<Scalar> residual = meas - estMeas;
 
     // Calculate the measurement sensitivity matrix
@@ -125,8 +126,7 @@ inline void  accelerometerUpdate(const AHRSParams<Scalar>& params,
                                                 {estMeas(2), 0.0, -estMeas(0)},
                                                 {-estMeas(1), estMeas(0), 0.0}};
     Eigen::Matrix<Scalar, 3, 12> H = Eigen::Matrix<Scalar, 3, 12>::Zero();
-    H.block(0, 0, 3, 3) = -measCross;
-    H.block(0, 3, 3, 3) = params.dt * measCross;
+    H.block(0, 0, 3, 3) = measCross;
     H.block(0, 6, 3, 3) = identity;
 
     // Calculate the Kalman gain
@@ -158,8 +158,8 @@ inline bool magnetometerUpdate(const AHRSParams<Scalar>& params,
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
     // Measurement and error model
-    const AttitudeVector<Scalar> estMeas = (*rotation) * data.magneticVector;
-    const AttitudeVector<Scalar> meas = data.magnetometerMeas.attitudeMeasVector - data.magneticDisturbances;
+    const AttitudeVector<Scalar> estMeas = rotation * data.magneticVector - data.magneticDisturbances;
+    const AttitudeVector<Scalar> meas = data.magnetometerMeas.attitudeMeasVector;
     const AttitudeVector<Scalar> residual = meas - estMeas;
 
     // Calculate the measurement sensitivity matrix
@@ -167,8 +167,7 @@ inline bool magnetometerUpdate(const AHRSParams<Scalar>& params,
                                                 {estMeas(2), 0.0, -estMeas(0)},
                                                 {-estMeas(1), estMeas(0), 0.0}};
     Eigen::Matrix<Scalar, 3, 12> H = Eigen::Matrix<Scalar, 3, 12>::Zero();
-    H.block(0, 0, 3, 3) = -measCross;
-    H.block(0, 3, 3, 3) = params.dt * measCross;
+    H.block(0, 0, 3, 3) = measCross;
     H.block(0, 9, 3, 3) = -identity;
 
     // Calculate the Kalman gain
@@ -240,8 +239,9 @@ inline bool AHRSKalmanUpdate(const AHRSParams<Scalar>& params, AHRSData<Scalar>&
 /**
 * Runs the attitude and heading reference systems (AHRS) extended Kalman Filter (MEKF) algorithm -- variant of MEKF. Referenced
 * from Mathworks: https://www.mathworks.com/help/fusion/ref/ahrsfilter-system-object.html#mw_a42526cc-0fa3-40b9-936e-343972701689
-* Input:
-* Output:
+* Input: params - AHRS params
+* Input: data - AHRS data structure
+* Output: Boolean if it passsed or failed
 **/
 template <typename Scalar>
 inline bool AHRSKalmanFilter(const AHRSParams<Scalar>& params, AHRSData<Scalar>& data)
@@ -261,7 +261,7 @@ inline bool AHRSKalmanFilter(const AHRSParams<Scalar>& params, AHRSData<Scalar>&
     AHRSKalmanPropagate(params, data);
 
     // Update the states based off the current measurements
-    result = AHRSKalmanUpdate(data);
+    result = AHRSKalmanUpdate(params, data);
 
     return result;
 }

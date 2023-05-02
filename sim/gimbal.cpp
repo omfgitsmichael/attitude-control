@@ -18,6 +18,8 @@ constexpr double tInit = 0.0;
 constexpr double simRate = 0.01;
 constexpr double tFinal = 50.0;
 constexpr int simSteps = static_cast<int>((tFinal - tInit) / simRate);
+constexpr double gravity = 9.81;
+constexpr double geomagneticFieldStrength = 50.0;
 
 // Filter params
 constexpr double filterRate = simRate;
@@ -69,20 +71,20 @@ int main() {
     const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
     const double intertialRef1Sigma = 0.025;
 
-    const double inclinationAngle = 60.0 * deg2rad; /// True inclination angle of where the gimbal is on the globe
+    const double inclinationAngle = 20.0 * deg2rad; /// True inclination angle of where the gimbal is on the globe
     const attitude::filter::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
     const double intertialRef2Sigma = 0.1;
 
     // Controller initial conditions
-    attitude::control::PassivityParams<double> params;
-    params.deadzoneParams.del = 0.5;
-    params.deadzoneParams.e0 = 0.025;
-    params.projectionParams.epsilon(0) = {0.5};
-    params.projectionParams.thetaMax(0) = {3000.0};
-    params.lambda = Eigen::Matrix<double, 3, 3>{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-    params.k = Eigen::Matrix<double, 3, 3>{{2.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 2.0}};
-    params.gammaInv = Eigen::Matrix<double, 3, 3>{{0.1, 0.0, 0.0}, {0.0, 0.1, 0.0}, {0.0, 0.0, 0.1}}.inverse();
-    params.dt = controllerRate;
+    attitude::control::PassivityParams<double> controllerParams;
+    controllerParams.deadzoneParams.del = 0.5;
+    controllerParams.deadzoneParams.e0 = 0.025;
+    controllerParams.projectionParams.epsilon(0) = {0.5};
+    controllerParams.projectionParams.thetaMax(0) = {3000.0};
+    controllerParams.lambda = Eigen::Matrix<double, 3, 3>{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+    controllerParams.k = Eigen::Matrix<double, 3, 3>{{2.0, 0.0, 0.0}, {0.0, 2.0, 0.0}, {0.0, 0.0, 2.0}};
+    controllerParams.gammaInv = Eigen::Matrix<double, 3, 3>{{0.1, 0.0, 0.0}, {0.0, 0.1, 0.0}, {0.0, 0.0, 0.1}}.inverse();
+    controllerParams.dt = controllerRate;
 
     // Desired states -- constant values for this sim
     const double yawDesDegrees = 0.0;
@@ -94,36 +96,75 @@ int main() {
     const attitude::BodyRate<double> omegaDotDesired{0.0, 0.0, 0.0};
 
     // Initialize the data structure for the controller class
-    attitude::PassivityControlData<double> data;
-    data.theta = attitude::control::Theta<double>{0.0, 0.0, 0.0};
-    data.quatDesired = *quatDesired;
-    data.omegaDesired = omegaDesired;
-    data.omegaDotDesired = omegaDotDesired;
+    attitude::PassivityControlData<double> controllerData;
+    controllerData.theta = attitude::control::Theta<double>{0.0, 0.0, 0.0};
+    controllerData.quatDesired = *quatDesired;
+    controllerData.omegaDesired = omegaDesired;
+    controllerData.omegaDotDesired = omegaDotDesired;
 
-    // External torques vector
+    // External vectors
     attitude::Control<double> externalTorques{0.0, 0.0, 0.0};
+    attitude::filter::AttitudeVector<double> linearAcceleration{0.0, -0.1, 0.1};
+    attitude::filter::AttitudeVector<double> magneticDisturbance{0.5, 1.0, 0.5};
+
 
     for (int i = 0; i < simSteps; i++) { 
+        // Generate any measurements
+        attitude::filter::AttitudeVector<double> accelerometerMeas = inertialRef1;
+        attitude::filter::AttitudeVector<double> magnetometerMeas = inertialRef2;
+        attitude::EulerAngle<double> euler = sim.getAttitude();
+        attitude::OptionalRotationMatrix<double> rotation = attitude::eulerRotationMatrix(sequence, euler); /// Shouldn't fail
+        if (rotation) {
+            accelerometerMeas =  (*rotation) * (gravity * inertialRef1 + linearAcceleration);
+            magnetometerMeas = (*rotation) * (geomagneticFieldStrength * inertialRef2 + magneticDisturbance);
+        }
+
+        attitude::BodyRate<double> omega = sim.getOmega();
+
+        // Want to move this into the sim class, but not sure how
+        if (useNoise) {
+            
+            euler += attitude::EulerAngle<double>{attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator)};
+            rotation = attitude::eulerRotationMatrix(sequence, euler); /// Shouldn't fail
+            if (rotation) {
+                accelerometerMeas = (*rotation) * (gravity * inertialRef1 + linearAcceleration);
+                magnetometerMeas = (*rotation) * (geomagneticFieldStrength * inertialRef2 + magneticDisturbance);
+            }
+
+            omega += attitude::BodyRate<double>{omegaNoiseGenerator(generator), omegaNoiseGenerator(generator), omegaNoiseGenerator(generator)};
+        }
+
+        // Kalman Filter wrapper
+        if (i % filterSteps == 0) {
+            attitude::filter::AttitudeMeasurement<double> meas1;
+            meas1.attitudeMeasVector = accelerometerMeas;
+            meas1.attitudeRefVector = inertialRef1;
+            meas1.sigma = intertialRef1Sigma;
+            meas1.valid = true;
+            filterData.accelerometerMeas = meas1;
+
+            attitude::filter::AttitudeMeasurement<double> meas2;
+            meas2.attitudeMeasVector = magnetometerMeas;
+            meas2.attitudeRefVector = inertialRef2;
+            meas2.sigma = intertialRef2Sigma;
+            meas2.valid = true;
+            filterData.magnetometerMeas = meas2;
+
+            filterData.omegaMeas = omega;
+
+            bool result = attitude::filter::ahrs::AHRSKalmanFilter(filterParams, filterData);
+            if (!result) {
+                // Do whatever you want if the filter failed
+            }
+        }
+
         if ( i % controllerSteps == 0) {
-            // Receive measurements and do any necessary conversions
-            attitude::EulerAngle<double> ypr = sim.getAttitude();
-            attitude::BodyRate<double> omega = sim.getOmega();
-
-            // Want to move this into the sim class, but not sure how
-            if (useNoise) {
-                ypr += attitude::EulerAngle<double>{attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator), attitudeNoiseGenerator(generator)};
-                omega += attitude::BodyRate<double>{omegaNoiseGenerator(generator), omegaNoiseGenerator(generator), omegaNoiseGenerator(generator)};
-            }
-
-            attitude::OptionalQuaternion<double> quat = attitude::eulerToQuaternion(sequence, ypr);
-            if (quat){
-                data.quat = *quat;
-            }
-
-            data.omega = omega;
+            // Use current filtered attitude and angular rate data
+            controllerData.quat = filterData.quaternion;
+            controllerData.omega = filterData.omega;
 
             // Run controller
-            bool result = attitude::control::passivityBasedAdaptiveControl(params, data);
+            bool result = attitude::control::passivityBasedAdaptiveControl(controllerParams, controllerData);
             if (!result) {
                 // Do whatever you want if the controller failed
             }
@@ -134,17 +175,22 @@ int main() {
         sim.updateInertialMatrix(inertialMatrix);
 
         // Pass control torque into the sim model
-        sim.updateStates(externalTorques, data.u);
+        sim.updateStates(externalTorques, controllerData.u);
 
         time += simRate;
 
         std::cout << "Sim Time: " << time << std::endl;
-        std::cout << "Sim Euler Angles: " << sim.getAttitude().transpose() << std::endl;
-        std::cout << "Desired Euler Angles: " << eulerDes.transpose() << std::endl;
+        std::cout << "Sim Quaternion: " << sim.getAttitudeQuat().transpose() << std::endl;
+        std::cout << "Desired Quaternion: " << (*quatDesired).transpose() << std::endl;
+        std::cout << "Estimated Quaternion: " << filterData.quaternion.transpose() << std::endl;
         std::cout << "Sim Body Rates: " << sim.getOmega().transpose() << std::endl;
         std::cout << "Desired Body Rates: " << omegaDesired.transpose() << std::endl;
-        std::cout << "Control Torque: " << data.u.transpose() << std::endl;
-        std::cout << "Estimated Parameters: " << data.theta.transpose() << std::endl;
+        std::cout << "Estimated Body Rates: " << filterData.omega.transpose() << std::endl;
+        std::cout << "Estimated Gyro Bias: " << filterData.omegaBias.transpose() << std::endl;
+        std::cout << "Estimated Linear Forces: " << filterData.linearAccelForces.transpose() << std::endl;
+        std::cout << "Estimated Magnetic Disturbance: " << filterData.magneticDisturbances.transpose() << std::endl;
+        std::cout << "Control Torque: " << controllerData.u.transpose() << std::endl;
+        std::cout << "Estimated Parameters: " << controllerData.theta.transpose() << std::endl;
         std::cout << std::endl;
         std::this_thread::sleep_for(10ms);
     }
