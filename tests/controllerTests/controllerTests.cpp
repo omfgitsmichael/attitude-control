@@ -17,7 +17,7 @@ GTEST_TEST(controllerTests, passivityBasedAdaptiveControl)
     params.dt = 0.1;
 
     // Initialize the data
-    attitude::PassivityControlData<double> data;
+    attitude::control::PassivityControlData<double> data;
     data.theta = attitude::control::Theta<double>{1.0, 1.0, 1.0};
     data.quat = attitude::Quaternion<double>{std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0, std::sqrt(4.0) / 4.0};
 

@@ -96,7 +96,7 @@ int main() {
     const attitude::BodyRate<double> omegaDotDesired{0.0, 0.0, 0.0};
 
     // Initialize the data structure for the controller class
-    attitude::PassivityControlData<double> controllerData;
+    attitude::control::PassivityControlData<double> controllerData;
     controllerData.theta = attitude::control::Theta<double>{0.0, 0.0, 0.0};
     controllerData.quatDesired = *quatDesired;
     controllerData.omegaDesired = omegaDesired;
