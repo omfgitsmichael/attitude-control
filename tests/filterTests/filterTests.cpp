@@ -16,7 +16,7 @@ GTEST_TEST(filterTests, MultiplicativeExtendedKalmanFilter)
 
     // Initialize the data
     attitude::filter::mekf::MEKFData<double> filterData;
-    filterData.quaternion = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
+    filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e9 * attitude::filter::Covariance<double, 6>::Identity();
     const attitude::filter::AttitudeVector<double> inertialRef1{1, 0, 0};
     const double intertialRef1Sigma = 0.025;
@@ -52,10 +52,10 @@ GTEST_TEST(filterTests, MultiplicativeExtendedKalmanFilter)
 
     // Compare results to matlab
     EXPECT_TRUE(result);
-    EXPECT_NEAR(filterData.quaternion(0), -0.218338058, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(1), 0.066575877, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(2), 0.820168143, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(3), 0.524614488, 1e-8);
+    EXPECT_NEAR(filterData.quat(0), -0.218338058, 1e-8);
+    EXPECT_NEAR(filterData.quat(1), 0.066575877, 1e-8);
+    EXPECT_NEAR(filterData.quat(2), 0.820168143, 1e-8);
+    EXPECT_NEAR(filterData.quat(3), 0.524614488, 1e-8);
     EXPECT_NEAR(filterData.omega(0), 0.091680646, 1e-8);
     EXPECT_NEAR(filterData.omega(1), -0.121299575, 1e-8);
     EXPECT_NEAR(filterData.omega(2), 0.115997172, 1e-8);
@@ -78,7 +78,7 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
 
     // Initialize the data
     attitude::filter::ahrs::AHRSData<double> filterData;
-    filterData.quaternion = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
+    filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e3 * attitude::filter::Covariance<double, 12>::Identity();
     const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
     const double intertialRef1Sigma = 0.025;
@@ -117,10 +117,10 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
 
     // Compare results to matlab - Initialization
     EXPECT_TRUE(result);
-    EXPECT_NEAR(filterData.quaternion(0), -0.508086040, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(1), -0.019115728, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(2), 0.285266054, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(3), 0.812469348, 1e-8);
+    EXPECT_NEAR(filterData.quat(0), -0.508086040, 1e-8);
+    EXPECT_NEAR(filterData.quat(1), -0.019115728, 1e-8);
+    EXPECT_NEAR(filterData.quat(2), 0.285266054, 1e-8);
+    EXPECT_NEAR(filterData.quat(3), 0.812469348, 1e-8);
     EXPECT_NEAR(filterData.omega(0), 0.1, 1e-8);
     EXPECT_NEAR(filterData.omega(1), -0.1, 1e-8);
     EXPECT_NEAR(filterData.omega(2), 0.1, 1e-8);
@@ -156,10 +156,10 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
 
     // Compare results to matlab - Initialization
     EXPECT_TRUE(result2);
-    EXPECT_NEAR(filterData.quaternion(0), -0.507546713, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(1), -0.019125289, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(2), 0.285935974, 1e-8);
-    EXPECT_NEAR(filterData.quaternion(3), 0.812570720, 1e-8);
+    EXPECT_NEAR(filterData.quat(0), -0.507546713, 1e-8);
+    EXPECT_NEAR(filterData.quat(1), -0.019125289, 1e-8);
+    EXPECT_NEAR(filterData.quat(2), 0.285935974, 1e-8);
+    EXPECT_NEAR(filterData.quat(3), 0.812570720, 1e-8);
     EXPECT_NEAR(filterData.omega(0), 0.1, 1e-8);
     EXPECT_NEAR(filterData.omega(1), -0.1, 1e-8);
     EXPECT_NEAR(filterData.omega(2), 0.1, 1e-8);

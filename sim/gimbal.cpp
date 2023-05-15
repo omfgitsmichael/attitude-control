@@ -2,10 +2,10 @@
 #include <iostream>
 #include <thread>
 
-#include "controllers/passivityBasedAdaptiveControl.h"
-#include "filters/AHRSKalmanFilter.h"
 #include "sim.h"
 #include "utils/attitudeUtils.h"
+#include "registry/controllerFunctionRegistry.h"
+#include "registry/filterFunctionRegistry.h"
 
 using namespace std::chrono_literals; /// ns, us, ms, s, h, etc.
 
@@ -30,6 +30,9 @@ constexpr double controllerRate = 0.1;
 constexpr int controllerSteps = static_cast<int>((controllerRate) / simRate);
 
 int main() {
+    std::unordered_map<std::string, registry::func<double>> controllerRegistry = registry::controllerRegistry<double>();
+    std::unordered_map<std::string, registry::func<double>> filterRegistry = registry::filterRegistry<double>();
+
     double time = tInit;
     std::string sequence = "321";
 
@@ -66,7 +69,7 @@ int main() {
     filterParams.magDisturbanceNoise = 0.5;
 
     attitude::filter::ahrs::AHRSData<double> filterData; /// Leave everything initialized to zero at the moment
-    filterData.quaternion = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
+    filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e3 * attitude::filter::Covariance<double, 12>::Identity(); /// Set covariance as if we have no idea what our inital estimate is
     const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
     const double intertialRef1Sigma = 0.025;
@@ -152,7 +155,7 @@ int main() {
 
             filterData.omegaMeas = omega;
 
-            bool result = attitude::filter::ahrs::AHRSKalmanFilter(filterParams, filterData);
+            bool result = filterRegistry.at("AHRSKalmanFilter")(filterParams, filterData);
             if (!result) {
                 // Do whatever you want if the filter failed
             }
@@ -160,11 +163,11 @@ int main() {
 
         if ( i % controllerSteps == 0) {
             // Use current filtered attitude and angular rate data
-            controllerData.quat = filterData.quaternion;
+            controllerData.quat = filterData.quat;
             controllerData.omega = filterData.omega;
 
             // Run controller
-            bool result = attitude::control::passivityBasedAdaptiveControl(controllerParams, controllerData);
+            bool result = controllerRegistry.at("passivityBasedAdaptiveControl")(controllerParams, controllerData);
             if (!result) {
                 // Do whatever you want if the controller failed
             }
@@ -182,7 +185,7 @@ int main() {
         std::cout << "Sim Time: " << time << std::endl;
         std::cout << "Sim Quaternion: " << sim.getAttitudeQuat().transpose() << std::endl;
         std::cout << "Desired Quaternion: " << (*quatDesired).transpose() << std::endl;
-        std::cout << "Estimated Quaternion: " << filterData.quaternion.transpose() << std::endl;
+        std::cout << "Estimated Quaternion: " << filterData.quat.transpose() << std::endl;
         std::cout << "Sim Body Rates: " << sim.getOmega().transpose() << std::endl;
         std::cout << "Desired Body Rates: " << omegaDesired.transpose() << std::endl;
         std::cout << "Estimated Body Rates: " << filterData.omega.transpose() << std::endl;
