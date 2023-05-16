@@ -30,8 +30,8 @@ constexpr double controllerRate = 0.1;
 constexpr int controllerSteps = static_cast<int>((controllerRate) / simRate);
 
 int main() {
-    std::unordered_map<std::string, registry::func<double>> controllerRegistry = registry::controllerRegistry<double>();
-    std::unordered_map<std::string, registry::func<double>> filterRegistry = registry::filterRegistry<double>();
+    std::unordered_map<std::string, registry::controllerFunc<double>> controllerRegistry = registry::controllerRegistry<double>();
+    std::unordered_map<std::string, registry::filterFunc<double>> filterRegistry = registry::filterRegistry<double>();
 
     double time = tInit;
     std::string sequence = "321";
