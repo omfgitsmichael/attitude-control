@@ -124,10 +124,10 @@ inline void AHRSKalmanPropagate(const AHRSParams<Scalar>& params, AHRSData<Scala
 * Output: Boolean if it passsed or failed
 **/
 template <typename Scalar>
-inline void  accelerometerUpdate(const AttitudeMeasurement<Scalar>& measurement,
-                                 const AHRSParams<Scalar>& params,
-                                 const RotationMatrix<Scalar>& rotation,
-                                 AHRSData<Scalar>& data)
+inline void accelerometerUpdate(const AttitudeMeasurement<Scalar>& measurement,
+                                const AHRSParams<Scalar>& params,
+                                const RotationMatrix<Scalar>& rotation,
+                                AHRSData<Scalar>& data)
 {
     const Eigen::Matrix<Scalar, 3, 3> identity = Eigen::Matrix<Scalar, 3, 3>::Identity();
 
