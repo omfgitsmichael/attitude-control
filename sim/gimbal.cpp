@@ -71,11 +71,11 @@ int main() {
     attitude::filter::ahrs::AHRSData<double> filterData; /// Leave everything initialized to zero at the moment
     filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e3 * attitude::filter::Covariance<double, 12>::Identity(); /// Set covariance as if we have no idea what our inital estimate is
-    const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
+    const attitude::AttitudeVector<double> inertialRef1{0, 0, 1};
     const double intertialRef1Sigma = 0.025;
 
     const double inclinationAngle = 20.0 * deg2rad; /// True inclination angle of where the gimbal is on the globe
-    const attitude::filter::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
+    const attitude::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
     const double intertialRef2Sigma = 0.1;
 
     // Controller initial conditions
@@ -107,18 +107,18 @@ int main() {
 
     // External vectors
     attitude::Control<double> externalTorques{0.0, 0.0, 0.0};
-    attitude::filter::AttitudeVector<double> linearAcceleration{0.0, -0.1, 0.1};
-    attitude::filter::AttitudeVector<double> magneticDisturbance{0.5, 1.0, 0.5};
+    attitude::AttitudeVector<double> linearAcceleration{0.0, -0.1, 0.1};
+    attitude::AttitudeVector<double> magneticDisturbance{0.5, 1.0, 0.5};
 
 
     for (int i = 0; i < simSteps; i++) { 
         // Generate any measurements
-        attitude::filter::AttitudeVector<double> accelerometerMeas = inertialRef1;
-        attitude::filter::AttitudeVector<double> magnetometerMeas = inertialRef2;
+        attitude::AttitudeVector<double> accelerometerMeas = inertialRef1;
+        attitude::AttitudeVector<double> magnetometerMeas = inertialRef2;
         attitude::EulerAngle<double> euler = sim.getAttitude();
         attitude::OptionalRotationMatrix<double> rotation = attitude::eulerRotationMatrix(sequence, euler); /// Shouldn't fail
         if (rotation) {
-            accelerometerMeas =  (*rotation) * (gravity * inertialRef1 + linearAcceleration);
+            accelerometerMeas = (*rotation) * (gravity * inertialRef1 + linearAcceleration);
             magnetometerMeas = (*rotation) * (geomagneticFieldStrength * inertialRef2 + magneticDisturbance);
         }
 
@@ -139,19 +139,23 @@ int main() {
 
         // Kalman Filter wrapper
         if (i % filterSteps == 0) {
-            attitude::filter::AttitudeMeasurement<double> meas1;
+            filterData.attitudeMeasurements.clear();
+            
+            attitude::AttitudeMeasurement<double> meas1;
             meas1.attitudeMeasVector = accelerometerMeas;
             meas1.attitudeRefVector = inertialRef1;
             meas1.sigma = intertialRef1Sigma;
             meas1.valid = true;
-            filterData.accelerometerMeas = meas1;
+            meas1.sensorType = attitude::AttitudeMeasurementType::ACCELEROMETER;
+            filterData.attitudeMeasurements.push_back(meas1);
 
-            attitude::filter::AttitudeMeasurement<double> meas2;
+            attitude::AttitudeMeasurement<double> meas2;
             meas2.attitudeMeasVector = magnetometerMeas;
             meas2.attitudeRefVector = inertialRef2;
             meas2.sigma = intertialRef2Sigma;
             meas2.valid = true;
-            filterData.magnetometerMeas = meas2;
+            meas2.sensorType = attitude::AttitudeMeasurementType::MAGNETOMETER;
+            filterData.attitudeMeasurements.push_back(meas2);
 
             filterData.omegaMeas = omega;
 

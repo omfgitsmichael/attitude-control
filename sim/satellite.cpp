@@ -65,9 +65,9 @@ int main() {
     attitude::filter::mekf::MEKFData<double> filterData; /// Leave everything initialized to zero at the moment
     filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e9 * attitude::filter::Covariance<double, 6>::Identity(); /// Set covariance as if we have no idea what our inital estimate is
-    const attitude::filter::AttitudeVector<double> inertialRef1{1, 0, 0};
+    const attitude::AttitudeVector<double> inertialRef1{1, 0, 0};
     const double intertialRef1Sigma = 0.025;
-    const attitude::filter::AttitudeVector<double> inertialRef2{0, 0, 1};
+    const attitude::AttitudeVector<double> inertialRef2{0, 0, 1};
     const double intertialRef2Sigma = 0.025;
 
     // Controller initial conditions
@@ -102,8 +102,8 @@ int main() {
 
     for (int i = 0; i < simSteps; i++) { 
         // Generate any measurements
-        attitude::filter::AttitudeVector<double> attitudeMeas1 = inertialRef1;
-        attitude::filter::AttitudeVector<double> attitudeMeas2 = inertialRef2;
+        attitude::AttitudeVector<double> attitudeMeas1 = inertialRef1;
+        attitude::AttitudeVector<double> attitudeMeas2 = inertialRef2;
         attitude::EulerAngle<double> euler = sim.getAttitude();
         attitude::OptionalRotationMatrix<double> rotation = attitude::eulerRotationMatrix(sequence, euler); /// Shouldn't fail
         if (rotation) {
@@ -130,14 +130,14 @@ int main() {
         if (i % filterSteps == 0) {
             filterData.attitudeMeasurements.clear();
 
-            attitude::filter::AttitudeMeasurement<double> meas1;
+            attitude::AttitudeMeasurement<double> meas1;
             meas1.attitudeMeasVector = attitudeMeas1;
             meas1.attitudeRefVector = inertialRef1;
             meas1.sigma = intertialRef1Sigma;
             meas1.valid = true;
             filterData.attitudeMeasurements.push_back(meas1);
 
-            attitude::filter::AttitudeMeasurement<double> meas2;
+            attitude::AttitudeMeasurement<double> meas2;
             meas2.attitudeMeasVector = attitudeMeas2;
             meas2.attitudeRefVector = inertialRef2;
             meas2.sigma = intertialRef2Sigma;

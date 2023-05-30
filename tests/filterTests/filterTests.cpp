@@ -18,9 +18,9 @@ GTEST_TEST(filterTests, MultiplicativeExtendedKalmanFilter)
     attitude::filter::mekf::MEKFData<double> filterData;
     filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e9 * attitude::filter::Covariance<double, 6>::Identity();
-    const attitude::filter::AttitudeVector<double> inertialRef1{1, 0, 0};
+    const attitude::AttitudeVector<double> inertialRef1{1, 0, 0};
     const double intertialRef1Sigma = 0.025;
-    const attitude::filter::AttitudeVector<double> inertialRef2{0, 0, 1};
+    const attitude::AttitudeVector<double> inertialRef2{0, 0, 1};
     const double intertialRef2Sigma = 0.025;
 
     // Generate measurements
@@ -31,14 +31,14 @@ GTEST_TEST(filterTests, MultiplicativeExtendedKalmanFilter)
     attitude::OptionalRotationMatrix<double> rotation = attitude::eulerRotationMatrix("321", euler);
 
     ASSERT_TRUE(rotation);
-    attitude::filter::AttitudeMeasurement<double> meas1;
+    attitude::AttitudeMeasurement<double> meas1;
     meas1.attitudeMeasVector = (*rotation) * inertialRef1;
     meas1.attitudeRefVector = inertialRef1;
     meas1.sigma = intertialRef1Sigma;
     meas1.valid = true;
     filterData.attitudeMeasurements.push_back(meas1);
 
-    attitude::filter::AttitudeMeasurement<double> meas2;
+    attitude::AttitudeMeasurement<double> meas2;
     meas2.attitudeMeasVector = (*rotation) * inertialRef2;
     meas2.attitudeRefVector = inertialRef2;
     meas2.sigma = intertialRef2Sigma;
@@ -80,11 +80,11 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
     attitude::filter::ahrs::AHRSData<double> filterData;
     filterData.quat = attitude::Quaternion<double>{0.0, 0.0, 0.0, 1.0};
     filterData.P = 1e3 * attitude::filter::Covariance<double, 12>::Identity();
-    const attitude::filter::AttitudeVector<double> inertialRef1{0, 0, 1};
+    const attitude::AttitudeVector<double> inertialRef1{0, 0, 1};
     const double intertialRef1Sigma = 0.025;
 
     const double inclinationAngle = 20.0 * deg2rad;
-    const attitude::filter::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
+    const attitude::AttitudeVector<double> inertialRef2{std::cos(inclinationAngle), 0.0, std::sin(inclinationAngle)};
     const double intertialRef2Sigma = 0.1;
 
     // Generate measurements
@@ -95,19 +95,21 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
     attitude::OptionalRotationMatrix<double> rotation = attitude::eulerRotationMatrix("321", euler);
 
     ASSERT_TRUE(rotation);
-    attitude::filter::AttitudeMeasurement<double> meas1;
+    attitude::AttitudeMeasurement<double> meas1;
     meas1.attitudeMeasVector =  (*rotation) * (filterParams.gravity * inertialRef1);;
     meas1.attitudeRefVector = inertialRef1;
     meas1.sigma = intertialRef1Sigma;
     meas1.valid = true;
-    filterData.accelerometerMeas = meas1;
+    meas1.sensorType = attitude::AttitudeMeasurementType::ACCELEROMETER;
+    filterData.attitudeMeasurements.push_back(meas1);
 
-    attitude::filter::AttitudeMeasurement<double> meas2;
+    attitude::AttitudeMeasurement<double> meas2;
     meas2.attitudeMeasVector = (*rotation) * (filterParams.geomagneticFieldStrength * inertialRef2);
     meas2.attitudeRefVector = inertialRef2;
     meas2.sigma = intertialRef2Sigma;
     meas2.valid = true;
-    filterData.magnetometerMeas = meas2;
+    meas2.sensorType = attitude::AttitudeMeasurementType::MAGNETOMETER;
+    filterData.attitudeMeasurements.push_back(meas2);
 
     const attitude::BodyRate<double> omega{0.1, -0.1, 0.1};
     filterData.omegaMeas = omega;
@@ -139,17 +141,21 @@ GTEST_TEST(filterTests, AHRSKalmanFilter)
     // Generate the measurements
     rotation = attitude::quaternionRotationMatrix(quat2);
 
-    meas1.attitudeMeasVector =  (*rotation) * (filterParams.gravity * inertialRef1);;
+    filterData.attitudeMeasurements.clear();
+
+    meas1.attitudeMeasVector = (*rotation) * (filterParams.gravity * inertialRef1);;
     meas1.attitudeRefVector = inertialRef1;
     meas1.sigma = intertialRef1Sigma;
     meas1.valid = true;
-    filterData.accelerometerMeas = meas1;
+    meas1.sensorType = attitude::AttitudeMeasurementType::ACCELEROMETER;
+    filterData.attitudeMeasurements.push_back(meas1);
 
     meas2.attitudeMeasVector = (*rotation) * (filterParams.geomagneticFieldStrength * inertialRef2);
     meas2.attitudeRefVector = inertialRef2;
     meas2.sigma = intertialRef2Sigma;
     meas2.valid = true;
-    filterData.magnetometerMeas = meas2;
+    meas2.sensorType = attitude::AttitudeMeasurementType::MAGNETOMETER;
+    filterData.attitudeMeasurements.push_back(meas2);
 
     // Run the filter
     const bool result2 = attitude::filter::ahrs::AHRSKalmanFilter(filterParams, filterData);
